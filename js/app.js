@@ -1,69 +1,49 @@
 /* ================================================================
-   DEVPAY — GITHUB WORK PAYMENTS
-   Frontend checkout powered by Paystack Inline (v2)
-
-   No fixed prices: the payer types the amount they owe.
-   Every payment is routed to a Paystack subaccount (see CONFIG).
-
-   ⚠️ Public key only. Never put your Paystack secret key in this file.
+   DEVPAY — CLIENT
+   Flow:
+     1. POST /api/initialize   → server creates the transaction with the
+                                 secret key and returns an access code
+     2. PaystackPop.resumeTransaction(accessCode) → buyer pays in the popup
+     3. GET /api/verify/:ref   → server asks Paystack whether it really
+                                 succeeded; only then is success shown
+   No secret key, no price and no trust decisions live in this file.
 ================================================================ */
 
 'use strict';
 
 /* ================================================================
-   1. CONFIGURATION
-================================================================ */
-const CONFIG = {
-  /* Paystack PUBLIC key — Dashboard → Settings → API Keys & Webhooks */
-  PAYSTACK_PUBLIC_KEY: 'pk_live_1d48c7981d1abf7396474499a369ab7bef17740a',
-
-  /* ── SUBACCOUNT ROUTING ─────────────────────────────────────
-     Every transaction is initialised with this code so funds land
-     in the subaccount rather than the main account.              */
-  SUBACCOUNT_CODE: 'ACCT_4i2l4tyiv5p48cu',
-
-  /* Who absorbs Paystack's fee: 'account' or 'subaccount' */
-  BEARER: 'account',
-
-  /* Flat fee (in NAIRA) kept by the MAIN account per payment.
-     0 = nothing retained; the subaccount's own percentage_charge
-     decides the split. This is a flat amount, not a percentage.   */
-  MAIN_ACCOUNT_FLAT_CHARGE_NGN: 0,
-
-  /* ── BRANDING ─────────────────────────────────────────────── */
-  BRAND_NAME: 'DevPay',
-  GITHUB_HANDLE: '@yourhandle',
-  SUPPORT_EMAIL: 'hello@example.com',
-
-  /* ── CURRENCY ─────────────────────────────────────────────── */
-  CHARGE_CURRENCY: 'NGN',        // Paystack always charges in NGN here
-  USD_TO_NGN_RATE: 1600,         // display/conversion rate — update as FX moves
-
-  /* Limits (Paystack charges NGN; these are NGN limits) */
-  MIN_CHARGE_NGN: 100,           // Paystack's floor is ₦100
-  MAX_CHARGE_NGN: 5000000,       // soft ceiling; above this, talk first
-};
-
-/* ================================================================
-   2. STATE
+   1. STATE
 ================================================================ */
 const STATE = {
-  currency: 'NGN',          // what the payer types in
-  amountValue: 0,           // parsed amount in STATE.currency
-  amountNGN: 0,             // converted amount in Naira
+  currency: 'NGN',        // what the payer types in
+  amountValue: 0,
+  amountNGN: 0,
+  config: null,
   isProcessing: false,
-  buyerEmail: '',
-  buyerName: '',
-  githubHandle: '',
-  workReference: '',
-  note: '',
-  currentReference: '',
+  reference: '',
+  accessCode: '',
+  pollTimer: null,
+  pollAttempts: 0,
+  lastPayment: null,      // snapshot used by the receipt
 };
 
-/* ================================================================
-   3. HELPERS
-================================================================ */
 const $ = (id) => document.getElementById(id);
+
+/* ================================================================
+   2. HELPERS
+================================================================ */
+const ngnFormatter = new Intl.NumberFormat('en-NG', {
+  style: 'currency', currency: 'NGN', minimumFractionDigits: 2, maximumFractionDigits: 2,
+});
+const usdFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency', currency: 'USD', minimumFractionDigits: 2, maximumFractionDigits: 2,
+});
+
+function formatNGN(amount) { return ngnFormatter.format(Number(amount) || 0); }
+function formatUSD(amount) { return usdFormatter.format(Number(amount) || 0); }
+function formatMoney(amount, currency) {
+  return currency === 'USD' ? formatUSD(amount) : formatNGN(amount);
+}
 
 function escapeHTML(str) {
   return String(str).replace(/[&<>"']/g, (c) => ({
@@ -71,30 +51,12 @@ function escapeHTML(str) {
   }[c]));
 }
 
-function formatNGN(amount) {
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(String(email).trim());
 }
 
-function formatUSD(amount) {
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
-}
-
-function formatMoney(amount, currency) {
-  return currency === 'USD' ? formatUSD(amount) : formatNGN(amount);
-}
-
-/* Thousands separators while typing, decimals up to 2 places */
-function formatAmountInput(raw, currency) {
+/* Amount formatting while typing: separators, max 2 decimals */
+function formatAmountInput(raw) {
   let value = String(raw).replace(/[^\d.]/g, '');
 
   const firstDot = value.indexOf('.');
@@ -105,57 +67,39 @@ function formatAmountInput(raw, currency) {
   }
 
   const [whole, decimals] = value.split('.');
-  const grouped = whole
-    ? Number(whole).toLocaleString('en-US', { maximumFractionDigits: 0 })
-    : '';
+  const grouped = whole ? Number(whole).toLocaleString('en-US', { maximumFractionDigits: 0 }) : '';
 
   if (value.includes('.')) return `${grouped || '0'}.${decimals ?? ''}`;
   return grouped;
 }
 
-function parseAmount(formatted) {
-  const clean = String(formatted).replace(/,/g, '');
-  const parsed = Number.parseFloat(clean);
+function parseAmount(value) {
+  const parsed = Number.parseFloat(String(value).replace(/,/g, ''));
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function rate() {
+  return STATE.config?.usdToNgnRate || 1600;
+}
+
 function toNGN(value, currency) {
-  return currency === 'USD' ? value * CONFIG.USD_TO_NGN_RATE : value;
+  return currency === 'USD' ? value * rate() : value;
 }
 
-function toKobo(ngnAmount) {
-  return Math.round(ngnAmount * 100);
-}
-
-function generateReference() {
-  const stamp = Date.now().toString(36).toUpperCase();
-  const rand = Math.random().toString(36).slice(2, 7).toUpperCase();
-  return `DEVPAY-${stamp}-${rand}`;
-}
-
-function isValidEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(String(email).trim());
-}
-
-function scrollToEl(el, options = { behavior: 'smooth', block: 'start' }) {
+function scrollToEl(el, options = { behavior: 'smooth', block: 'center' }) {
   if (el && typeof el.scrollIntoView === 'function') {
     try { el.scrollIntoView(options); } catch { /* ignore */ }
   }
 }
 
 /* ================================================================
-   4. TOASTS
+   3. TOASTS
 ================================================================ */
 function showToast({ type = 'info', title = '', message = '', duration = 4500 }) {
   const container = $('toastContainer');
   if (!container) return;
 
-  const icons = {
-    success: 'fa-check',
-    error: 'fa-xmark',
-    info: 'fa-circle-info',
-    warning: 'fa-triangle-exclamation',
-  };
+  const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info', warning: 'fa-triangle-exclamation' };
 
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
@@ -175,9 +119,43 @@ function showToast({ type = 'info', title = '', message = '', duration = 4500 })
     toast.classList.remove('show');
     setTimeout(() => toast.remove(), 200);
   };
-
   toast.querySelector('.toast-close').addEventListener('click', remove);
   setTimeout(remove, duration);
+}
+
+/* ================================================================
+   4. CONFIG FROM SERVER
+================================================================ */
+async function loadConfig() {
+  try {
+    const response = await fetch('/api/config', { headers: { Accept: 'application/json' } });
+    if (!response.ok) throw new Error('config unavailable');
+    const cfg = await response.json();
+
+    STATE.config = cfg;
+
+    if (cfg.recipientHandle) {
+      const handleEl = $('recipientHandle');
+      if (handleEl) handleEl.textContent = cfg.recipientHandle;
+      const avatarEl = $('recipientAvatar');
+      if (avatarEl) avatarEl.textContent = cfg.recipientHandle.slice(0, 2).toLowerCase();
+    }
+    if (cfg.supportEmail) {
+      const support = $('supportLink');
+      if (support) support.href = `mailto:${cfg.supportEmail}`;
+      const footer = $('footerEmail');
+      if (footer) { footer.textContent = cfg.supportEmail; footer.href = `mailto:${cfg.supportEmail}`; }
+    }
+    if (cfg.brandName) {
+      const brand = $('footerBrand');
+      if (brand) brand.textContent = cfg.brandName;
+      document.title = `Pay for GitHub work · ${cfg.brandName}`;
+    }
+
+    updateAmountDisplay();
+  } catch {
+    STATE.config = { usdToNgnRate: 1600, minNgn: 100, maxNgn: 5000000, verifyAttempts: 6 };
+  }
 }
 
 /* ================================================================
@@ -188,25 +166,21 @@ function initAmountInput() {
   if (!input) return;
 
   input.addEventListener('input', () => {
-    const formatted = formatAmountInput(input.value, STATE.currency);
+    const formatted = formatAmountInput(input.value);
     if (formatted !== input.value) {
       input.value = formatted;
-      // keep the caret at the end after reformatting
       const end = formatted.length;
       try { input.setSelectionRange(end, end); } catch { /* ignore */ }
     }
-
     STATE.amountValue = parseAmount(input.value);
-    updateAmountDisplay();
     setAmountError('');
+    updateAmountDisplay();
   });
 
   input.addEventListener('blur', () => {
     if (STATE.amountValue > 0) {
-      const decimals = STATE.currency === 'NGN' ? 2 : 2;
       input.value = STATE.amountValue.toLocaleString('en-US', {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals,
+        minimumFractionDigits: 2, maximumFractionDigits: 2,
       });
       STATE.amountValue = parseAmount(input.value);
       updateAmountDisplay();
@@ -214,56 +188,20 @@ function initAmountInput() {
   });
 }
 
-function updateAmountDisplay() {
-  const value = STATE.amountValue;
-  STATE.amountNGN = toNGN(value, STATE.currency);
-
-  const summaryAmount = $('summaryAmount');
-  const summaryTotal = $('summaryTotal');
-  const conversion = $('amountConversion');
-  const btnText = $('payBtnText');
-  const btn = $('payBtn');
-
-  if (summaryAmount) summaryAmount.textContent = formatMoney(value, STATE.currency);
-
-  if (summaryTotal) {
-    if (value > 0) {
-      summaryTotal.textContent = STATE.currency === 'NGN'
-        ? formatNGN(STATE.amountNGN)
-        : `${formatUSD(value)} · ${formatNGN(STATE.amountNGN)}`;
-    } else {
-      summaryTotal.textContent = formatNGN(0);
-    }
-  }
-
-  if (conversion) {
-    conversion.textContent = STATE.currency === 'USD' && value > 0
-      ? `= ${formatNGN(STATE.amountNGN)} charged by Paystack.`
-      : 'Charged in Naira by Paystack.';
-  }
-
-  if (btnText) {
-    btnText.textContent = value > 0
-      ? `Pay ${formatMoney(value, STATE.currency)}`
-      : 'Enter an amount to continue';
-  }
-  if (btn) btn.disabled = value <= 0;
-}
-
-function initCurrencyToggle() {
+function initCurrencySwitch() {
   document.querySelectorAll('.currency-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
       const next = btn.dataset.currency;
       if (next === STATE.currency) return;
 
-      // Convert the typed amount into the new currency
       const ngn = toNGN(STATE.amountValue, STATE.currency);
       STATE.currency = next;
-      STATE.amountValue = next === 'USD' ? ngn / CONFIG.USD_TO_NGN_RATE : ngn;
-      STATE.amountValue = Math.round(STATE.amountValue * 100) / 100;
+      STATE.amountValue = Math.round((next === 'USD' ? ngn / rate() : ngn) * 100) / 100;
 
       document.querySelectorAll('.currency-btn').forEach((b) => {
-        b.classList.toggle('is-active', b.dataset.currency === next);
+        const active = b.dataset.currency === next;
+        b.classList.toggle('is-active', active);
+        b.setAttribute('aria-pressed', String(active));
       });
       if ($('amountPrefix')) $('amountPrefix').textContent = next === 'USD' ? '$' : '₦';
       if ($('amountInput')) {
@@ -271,22 +209,47 @@ function initCurrencyToggle() {
           ? STATE.amountValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
           : '';
       }
-
-      updateAmountDisplay();
       setAmountError('');
+      updateAmountDisplay();
     });
   });
 }
 
+function updateAmountDisplay() {
+  STATE.amountNGN = toNGN(STATE.amountValue, STATE.currency);
+
+  const conversion = $('amountConversion');
+  const btnText = $('payBtnText');
+  const btn = $('payBtn');
+  const min = STATE.config?.minNgn ?? 100;
+
+  if (conversion) {
+    if (STATE.amountValue > 0) {
+      conversion.textContent = STATE.currency === 'USD'
+        ? `Charged as ${formatNGN(STATE.amountNGN)} in Naira`
+        : 'Charged in Naira by Paystack';
+    } else {
+      conversion.textContent = `Minimum ${formatNGN(min)} · type any amount`;
+    }
+  }
+
+  if (btnText) {
+    btnText.textContent = STATE.amountValue > 0
+      ? `Pay ${formatMoney(STATE.amountValue, STATE.currency)}`
+      : 'Enter an amount';
+  }
+  if (btn) btn.disabled = STATE.isProcessing || STATE.amountValue <= 0;
+}
+
 function setAmountError(message) {
+  const wrap = $('amountWrap');
   const input = $('amountInput');
   const errorEl = $('amountError');
-  const wrap = $('amountWrap');
 
   if (wrap) wrap.classList.toggle('has-error', Boolean(message));
   if (input) input.setAttribute('aria-invalid', message ? 'true' : 'false');
   if (errorEl) {
-    errorEl.textContent = message;
+    errorEl.textContent = message || '';
     errorEl.classList.toggle('visible', Boolean(message));
   }
 }
@@ -294,218 +257,203 @@ function setAmountError(message) {
 function validateAmount() {
   const value = STATE.amountValue;
   const ngn = toNGN(value, STATE.currency);
+  const min = STATE.config?.minNgn ?? 100;
+  const max = STATE.config?.maxNgn ?? 5000000;
 
   if (!value || value <= 0) {
-    setAmountError('Enter the amount we agreed on — any amount above zero.');
+    setAmountError('Enter the amount you agreed on.');
     return false;
   }
-  if (ngn < CONFIG.MIN_CHARGE_NGN) {
-    setAmountError(`Paystack's minimum is ${formatNGN(CONFIG.MIN_CHARGE_NGN)}. Enter a larger amount.`);
+  if (ngn < min) {
+    setAmountError(`The minimum payment is ${formatNGN(min)}.`);
     return false;
   }
-  if (ngn > CONFIG.MAX_CHARGE_NGN) {
-    setAmountError(
-      `That's above ${formatNGN(CONFIG.MAX_CHARGE_NGN)}. Email me first so the settlement and receipt are set up correctly.`
-    );
+  if (ngn > max) {
+    setAmountError(`That's above ${formatNGN(max)}. Email ${STATE.config?.supportEmail || 'me'} to arrange it.`);
     return false;
   }
-
   setAmountError('');
   return true;
 }
 
 /* ================================================================
-   6. EMAIL VALIDATION
+   6. EMAIL
 ================================================================ */
-function validateEmail() {
-  const emailEl = $('buyerEmail');
-  const errorEl = $('emailError');
-  const email = emailEl?.value.trim() || '';
-
-  if (!email) {
-    setEmailError('Enter the email address for your receipt.');
-    return false;
-  }
-  if (!isValidEmail(email)) {
-    setEmailError('That email doesn\'t look right — check and try again.');
-    return false;
-  }
-
-  setEmailError('');
-  return true;
-}
-
 function setEmailError(message) {
   const input = $('buyerEmail');
   const errorEl = $('emailError');
-
   if (input) {
     input.classList.toggle('has-error', Boolean(message));
     input.setAttribute('aria-invalid', message ? 'true' : 'false');
   }
   if (errorEl) {
-    errorEl.textContent = message;
+    errorEl.textContent = message || '';
     errorEl.classList.toggle('visible', Boolean(message));
   }
 }
 
-function initEmailValidation() {
+function initEmailField() {
   const emailEl = $('buyerEmail');
   const iconEl = $('emailValidIcon');
   if (!emailEl) return;
 
   emailEl.addEventListener('input', () => {
     const value = emailEl.value.trim();
-    if (!value) {
-      setEmailError('');
-      if (iconEl) iconEl.innerHTML = '';
-      return;
-    }
     if (isValidEmail(value)) {
       setEmailError('');
       if (iconEl) iconEl.innerHTML = '<i class="fas fa-check"></i>';
-    } else {
-      if (iconEl) iconEl.innerHTML = '';
+    } else if (iconEl) {
+      iconEl.innerHTML = '';
+      if (!value) setEmailError('');
     }
   });
 
   emailEl.addEventListener('blur', () => {
-    if (emailEl.value.trim()) validateEmail();
+    const value = emailEl.value.trim();
+    if (!value) return;
+    setEmailError(isValidEmail(value) ? '' : 'Enter a valid email address.');
   });
 }
 
+function validateEmail() {
+  const value = $('buyerEmail')?.value.trim() || '';
+  if (!value) {
+    setEmailError('We need an email to send the receipt.');
+    return false;
+  }
+  if (!isValidEmail(value)) {
+    setEmailError('Enter a valid email address.');
+    return false;
+  }
+  setEmailError('');
+  return true;
+}
+
 /* ================================================================
-   7. PAYSTACK CHECKOUT — ROUTED TO SUBACCOUNT
+   7. PANELS
 ================================================================ */
-function initPaystackPayment() {
+function showPanel(name) {
+  const panels = {
+    form: $('formState'),
+    processing: $('processingState'),
+    success: $('successState'),
+    failed: $('failedState'),
+  };
+  Object.entries(panels).forEach(([key, el]) => {
+    if (el) el.style.display = key === name ? 'block' : 'none';
+  });
+  if (name !== 'form') scrollToEl($('paymentCard'));
+}
+
+function readForm() {
+  return {
+    email: $('buyerEmail')?.value.trim() || '',
+    amount: STATE.amountValue,
+    currency: STATE.currency,
+    name: $('buyerName')?.value.trim() || '',
+    github: $('githubHandle')?.value.trim() || '',
+    reference: $('workReference')?.value.trim() || '',
+    note: $('paymentNote')?.value.trim() || '',
+  };
+}
+
+/* ================================================================
+   8. PAYMENT FLOW
+================================================================ */
+async function startPayment() {
   if (STATE.isProcessing) return;
 
   const amountOK = validateAmount();
   const emailOK = validateEmail();
-
-  if (!amountOK) {
-    $('amountInput')?.focus();
-    return;
-  }
-  if (!emailOK) {
-    $('buyerEmail')?.focus();
-    return;
-  }
+  if (!amountOK) { $('amountInput')?.focus(); return; }
+  if (!emailOK) { $('buyerEmail')?.focus(); return; }
 
   if (!window.PaystackPop) {
     showToast({
       type: 'error',
       title: 'Checkout unavailable',
       message: 'The Paystack library did not load. Check your connection and refresh.',
-      duration: 7000,
     });
     return;
   }
 
-  if (CONFIG.PAYSTACK_PUBLIC_KEY.includes('xxxxxxxx')) {
-    showToast({
-      type: 'error',
-      title: 'Setup required',
-      message: 'Add your Paystack public key in js/app.js (CONFIG.PAYSTACK_PUBLIC_KEY).',
-      duration: 8000,
-    });
-    return;
-  }
-
+  const form = readForm();
   STATE.isProcessing = true;
-  STATE.buyerEmail = $('buyerEmail')?.value.trim() || '';
-  STATE.buyerName = $('buyerName')?.value.trim() || '';
-  STATE.githubHandle = $('githubHandle')?.value.trim() || '';
-  STATE.workReference = $('workReference')?.value.trim() || '';
-  STATE.note = $('paymentNote')?.value.trim() || '';
-
-  setButtonLoading(true);
-
-  const reference = generateReference();
-  STATE.currentReference = reference;
-
-  const chargedNGN = Math.round(STATE.amountNGN * 100) / 100;
-  const amountKobo = toKobo(chargedNGN);
-  const typedAmount = formatMoney(STATE.amountValue, STATE.currency);
-
-  /* ── Paystack configuration ─────────────────────────────────
-     `subaccount` routes the money; `bearer` decides who pays the
-     fee; `transaction_charge` is the flat slice kept centrally.  */
-  const paystackConfig = {
-    key: CONFIG.PAYSTACK_PUBLIC_KEY,
-    email: STATE.buyerEmail,
-    amount: amountKobo,
-    currency: CONFIG.CHARGE_CURRENCY,
-    reference,
-    ref: reference,
-    label: CONFIG.BRAND_NAME,
-
-    subaccount: CONFIG.SUBACCOUNT_CODE,
-    bearer: CONFIG.BEARER,
-    transaction_charge: Math.round(CONFIG.MAIN_ACCOUNT_FLAT_CHARGE_NGN * 100),
-
-    channels: ['card', 'bank', 'ussd', 'bank_transfer', 'mobile_money'],
-
-    metadata: {
-      purpose: 'GitHub development work — custom amount',
-      subaccount: CONFIG.SUBACCOUNT_CODE,
-      custom_fields: [
-        { display_name: 'Buyer Name', variable_name: 'buyer_name', value: STATE.buyerName || 'Anonymous' },
-        { display_name: 'GitHub Handle', variable_name: 'github_handle', value: STATE.githubHandle || 'Not provided' },
-        { display_name: 'Amount Typed', variable_name: 'amount_typed', value: `${typedAmount} (${STATE.currency})` },
-        { display_name: 'Amount NGN', variable_name: 'amount_ngn', value: String(chargedNGN) },
-        { display_name: 'PR / Issue', variable_name: 'work_reference', value: STATE.workReference || 'None' },
-        { display_name: 'Invoice Note', variable_name: 'invoice_note', value: STATE.note || 'None' },
-      ],
-    },
-
-    onSuccess: function (response) {
-      setButtonLoading(false);
-      STATE.isProcessing = false;
-      console.log('Paystack success:', response);
-      handlePaymentSuccess(response || {});
-    },
-
-    onCancel: function () {
-      setButtonLoading(false);
-      STATE.isProcessing = false;
-      showToast({
-        type: 'info',
-        title: 'Checkout closed',
-        message: 'No charges were made. Try again whenever you\'re ready.',
-      });
-    },
-  };
+  setLoading(true);
 
   try {
-    const popup = new PaystackPop();
-    const result = popup.newTransaction(paystackConfig);
+    /* 1 — the server creates the transaction (secret key stays there) */
+    const response = await fetch('/api/initialize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify(form),
+    });
+    const data = await response.json().catch(() => ({}));
 
-    if (result && typeof result.then === 'function') {
-      result.catch((error) => {
-        console.error('Paystack error:', error);
-        setButtonLoading(false);
+    if (!response.ok || !data.ok || !data.accessCode) {
+      STATE.isProcessing = false;
+      setLoading(false);
+      showToast({
+        type: 'error',
+        title: 'Could not start payment',
+        message: data.error || 'The server could not create this transaction. Please try again.',
+        duration: 7000,
+      });
+      if (data.field === 'amount') setAmountError(data.error);
+      if (data.field === 'email') setEmailError(data.error);
+      return;
+    }
+
+    STATE.reference = data.reference;
+    STATE.accessCode = data.accessCode;
+    STATE.lastPayment = {
+      amount: form.amount,
+      currency: form.currency,
+      amountNGN: data.amount?.ngn ?? toNGN(form.amount, form.currency),
+      email: form.email,
+      github: form.github,
+      workReference: form.reference,
+    };
+
+    /* 2 — resume that exact transaction in the popup */
+    const popup = new PaystackPop();
+    popup.resumeTransaction(data.accessCode, {
+      onSuccess: () => {
+        /* 3 — never trust the callback; ask our server */
+        verifyPayment(data.reference);
+      },
+      onCancel: () => {
         STATE.isProcessing = false;
+        setLoading(false);
+        showToast({
+          type: 'info',
+          title: 'Checkout closed',
+          message: 'No charge was made. Try again whenever you are ready.',
+        });
+      },
+      onError: (error) => {
+        STATE.isProcessing = false;
+        setLoading(false);
         showToast({
           type: 'error',
           title: 'Checkout error',
-          message: error?.message || 'Could not open the Paystack checkout. Please retry.',
+          message: error?.message || 'Paystack could not open this transaction. Please retry.',
         });
-      });
-    }
-  } catch (e) {
-    console.error('Paystack error:', e);
-    setButtonLoading(false);
+      },
+    });
+  } catch (err) {
+    console.error('startPayment failed:', err);
     STATE.isProcessing = false;
+    setLoading(false);
     showToast({
       type: 'error',
-      title: 'Payment error',
-      message: 'Could not open the payment window. Refresh and try again.',
+      title: 'Network error',
+      message: 'Could not reach the payment server. Check your connection and try again.',
     });
   }
 }
 
-function setButtonLoading(loading) {
+function setLoading(loading) {
   const content = $('payBtnContent');
   const loader = $('payBtnLoader');
   const btn = $('payBtn');
@@ -515,52 +463,147 @@ function setButtonLoading(loading) {
   if (btn) btn.disabled = loading || STATE.amountValue <= 0;
 }
 
-/* ================================================================
-   8. STATE PANELS
-================================================================ */
-function showState(state) {
-  const panels = {
-    form: $('formState'),
-    success: $('successState'),
-    failed: $('failedState'),
-  };
+/* ── Server verification, with polling for async channels ───── */
+function verifyPayment(reference, attempt = 0) {
+  showPanel('processing');
 
-  Object.entries(panels).forEach(([key, el]) => {
-    if (!el) return;
-    el.style.display = key === state ? 'block' : 'none';
-  });
-
-  if (state !== 'form') scrollToEl($('paymentCard'), { behavior: 'smooth', block: 'center' });
-}
-
-function handlePaymentSuccess(response) {
-  const reference = response.reference || response.ref || STATE.currentReference;
-
-  if ($('successRef')) $('successRef').textContent = reference;
-  if ($('successAmount')) $('successAmount').textContent = formatMoney(STATE.amountValue, STATE.currency);
-  if ($('successCharge')) $('successCharge').textContent = formatNGN(STATE.amountNGN);
-  if ($('successEmail')) $('successEmail').textContent = STATE.buyerEmail;
-  if ($('successEmailInline')) $('successEmailInline').textContent = STATE.buyerEmail;
-  if ($('successGithub')) $('successGithub').textContent = STATE.githubHandle || 'Not provided';
-  if ($('successWorkRef')) $('successWorkRef').textContent = STATE.workReference || 'None';
-  if ($('successNote')) $('successNote').textContent = STATE.note || 'None';
-
-  showState('success');
-
-  showToast({
-    type: 'success',
-    title: 'Payment confirmed',
-    message: `Reference ${reference}. Receipt sent to ${STATE.buyerEmail}.`,
-    duration: 7000,
-  });
-}
-
-function handlePaymentFailed(message) {
-  if ($('failedMessage')) {
-    $('failedMessage').textContent = message
-      || 'No money left your account. You can retry with the same amount.';
+  const maxAttempts = STATE.config?.verifyAttempts || 6;
+  const processingText = $('processingText');
+  if (processingText && attempt > 0) {
+    processingText.textContent = 'Still waiting for Paystack to confirm the charge. This usually takes a few seconds.';
   }
-  showState('failed');
+
+  fetch(`/api/verify/${encodeURIComponent(reference)}`, { headers: { Accept: 'application/json' } })
+    .then(async (response) => {
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok && data.status === undefined) {
+        throw new Error(data.error || 'Verification failed');
+      }
+
+      switch (data.status) {
+        case 'unknown':
+          /* Paystack has no record of this reference — fail fast, don't poll */
+          return showResult('failed', {
+            title: 'Transaction not found',
+            text: data.error
+              || 'Paystack has no record of this reference. If money left your account, contact support with the reference below.',
+            reference,
+          });
+
+        case 'success':
+          if (data.routedCorrectly === false) {
+            /* Paid, but not to the expected subaccount — do not claim success */
+            console.warn('Payment routed to unexpected account:', data.routedTo);
+            return showResult('failed', {
+              title: 'Payment received — routing needs review',
+              text: `Paystack confirmed the charge to ${data.routedTo || 'another account'}. Please contact support with the reference below so it can be reconciled.`,
+              reference,
+            });
+          }
+          return showResult('success', data, reference);
+
+        case 'failed':
+          return showResult('failed', {
+            title: 'Payment failed',
+            text: data.gatewayResponse
+              ? `Paystack reported: ${data.gatewayResponse}. Nothing was taken from your account.`
+              : 'Paystack declined this charge. Nothing was taken from your account.',
+            reference,
+          });
+
+        case 'abandoned':
+          return showResult('failed', {
+            title: 'Payment abandoned',
+            text: 'This transaction was abandoned before it completed. Nothing was charged — you can start again.',
+            reference,
+          });
+
+        case 'pending':
+        default:
+          if (attempt + 1 < maxAttempts) {
+            STATE.pollTimer = setTimeout(() => verifyPayment(reference, attempt + 1), 2500);
+            return;
+          }
+          return showResult('failed', {
+            title: 'Payment not confirmed yet',
+            text: "Paystack hasn't confirmed this charge yet. If money left your account, keep the reference and check your email — the receipt will arrive once Paystack settles it.",
+            reference,
+          });
+      }
+    })
+    .catch((err) => {
+      console.error('verify failed:', err);
+      if (attempt + 1 < maxAttempts) {
+        STATE.pollTimer = setTimeout(() => verifyPayment(reference, attempt + 1), 3000);
+        return;
+      }
+      showResult('failed', {
+        title: 'Could not verify',
+        text: 'We could not reach our server to verify this payment. If you were charged, keep the reference and contact support.',
+        reference,
+      });
+    });
+}
+
+function showResult(type, payload, reference) {
+  STATE.isProcessing = false;
+  setLoading(false);
+
+  if (type === 'success') {
+    const snapshot = STATE.lastPayment || {};
+    const paidNGN = payload.amountNGN || snapshot.amountNGN;
+    const amountText = snapshot.currency === 'USD' && paidNGN
+      ? `${formatUSD(paidNGN / rate())} · ${formatNGN(paidNGN)}`
+      : formatNGN(paidNGN);
+
+    if ($('successAmount')) $('successAmount').textContent = amountText;
+    if ($('successRef')) $('successRef').textContent = payload.reference || reference;
+    if ($('successChannel')) $('successChannel').textContent = humanChannel(payload.channel);
+    if ($('successDate')) $('successDate').textContent = formatDate(payload.paidAt);
+    if ($('successEmail')) $('successEmail').textContent = payload.buyerEmail || snapshot.email || 'your email';
+
+    const githubRow = $('successGithubRow');
+    if (snapshot.github && githubRow) $('successGithub').textContent = snapshot.github;
+    else if (githubRow) githubRow.style.display = 'none';
+
+    const refRow = $('successRefRow');
+    if (snapshot.workReference && refRow) $('successWorkRef').textContent = snapshot.workReference;
+    else if (refRow) refRow.style.display = 'none';
+
+    showPanel('success');
+    showToast({ type: 'success', title: 'Payment confirmed', message: 'Verified with Paystack.' });
+    return;
+  }
+
+  if ($('failedTitle')) $('failedTitle').textContent = payload.title || 'Payment not completed';
+  if ($('failedText')) $('failedText').textContent = payload.text || '';
+  if ($('failedRefHint')) {
+    $('failedRefHint').textContent = reference ? `Reference: ${reference}` : '';
+  }
+  showPanel('failed');
+}
+
+function humanChannel(channel) {
+  const map = {
+    card: 'Card',
+    bank: 'Bank',
+    bank_transfer: 'Bank transfer',
+    ussd: 'USSD',
+    mobile_money: 'Mobile money',
+    qr: 'QR code',
+    eft: 'EFT',
+  };
+  return map[channel] || channel || 'Paystack';
+}
+
+function formatDate(value) {
+  if (!value) return new Date().toLocaleString();
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString(undefined, {
+    year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
+  });
 }
 
 /* ================================================================
@@ -569,32 +612,21 @@ function handlePaymentFailed(message) {
 function initActions() {
   $('paymentForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
-    initPaystackPayment();
+    startPayment();
   });
 
   $('retryBtn')?.addEventListener('click', () => {
-    showState('form');
-    initPaystackPayment();
+    showPanel('form');
+    startPayment();
   });
 
-  $('changeAmountBtn')?.addEventListener('click', () => {
-    showState('form');
-    scrollToEl($('amountInput'), { behavior: 'smooth', block: 'center' });
-    try { $('amountInput')?.focus({ preventScroll: true }); } catch { /* ignore */ }
+  $('editAmountBtn')?.addEventListener('click', () => {
+    showPanel('form');
+    $('amountInput')?.focus();
+    scrollToEl($('amountInput'));
   });
 
-  $('buyAgainBtn')?.addEventListener('click', () => {
-    showState('form');
-    setButtonLoading(false);
-    const amountInput = $('amountInput');
-    const noteInput = $('paymentNote');
-    if (amountInput) amountInput.value = '';
-    if (noteInput) noteInput.value = '';
-    STATE.amountValue = 0;
-    STATE.amountNGN = 0;
-    updateAmountDisplay();
-    scrollToEl($('paymentCard'), { behavior: 'smooth', block: 'center' });
-  });
+  $('newPaymentBtn')?.addEventListener('click', resetToForm);
 
   $('copyRefBtn')?.addEventListener('click', async () => {
     const ref = $('successRef')?.textContent || '';
@@ -606,144 +638,79 @@ function initActions() {
     }
   });
 
-  $('printReceiptBtn')?.addEventListener('click', () => window.print());
-}
+  $('printBtn')?.addEventListener('click', () => window.print());
 
-/* ================================================================
-   10. HEADER / NAV
-================================================================ */
-function initNavigation() {
-  const header = $('navbar');
-  const hamburger = $('hamburger');
-  const drawer = $('mobileDrawer');
-
-  const onScroll = () => header?.classList.toggle('scrolled', window.scrollY > 8);
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
-
-  // Keep the repo tab bar pinned directly under the app header
-  const syncHeaderHeight = () => {
-    if (!header) return;
-    document.documentElement.style.setProperty('--header-h', `${header.offsetHeight}px`);
-  };
-  syncHeaderHeight();
-  window.addEventListener('resize', syncHeaderHeight);
-
-  hamburger?.addEventListener('click', () => {
-    const open = drawer?.classList.toggle('open');
-    hamburger.classList.toggle('active', Boolean(open));
-    hamburger.setAttribute('aria-expanded', String(Boolean(open)));
-    hamburger.innerHTML = open ? '<i class="fas fa-xmark"></i>' : '<i class="fas fa-bars"></i>';
-  });
-
-  drawer?.querySelectorAll('a').forEach((link) => {
-    link.addEventListener('click', () => {
-      drawer.classList.remove('open');
-      hamburger?.classList.remove('active');
-      hamburger?.setAttribute('aria-expanded', 'false');
-      if (hamburger) hamburger.innerHTML = '<i class="fas fa-bars"></i>';
-    });
-  });
-
-  // Smooth anchor scrolling with sticky-header offset
-  document.querySelectorAll('a[href^="#"]').forEach((link) => {
-    link.addEventListener('click', (e) => {
-      const id = link.getAttribute('href');
-      if (!id || id === '#') return;
-      const target = document.querySelector(id);
-      if (!target) return;
-      e.preventDefault();
-      const offset = (header?.offsetHeight || 0) + 56;
-      const top = target.getBoundingClientRect().top + window.scrollY - offset;
-      window.scrollTo({ top, behavior: 'smooth' });
-    });
-  });
-
-  // GitHub-style "/" shortcut → jump to the amount field
+  /* Keyboard: "/" jumps to the amount field */
   document.addEventListener('keydown', (e) => {
     if (e.key !== '/') return;
     const tag = document.activeElement?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA') return;
     e.preventDefault();
-    const target = $('amountInput');
-    scrollToEl(target, { behavior: 'smooth', block: 'center' });
-    try { target?.focus({ preventScroll: true }); } catch { /* ignore */ }
-  });
-
-  // Active repo tab follows the section in view
-  const tabs = Array.from(document.querySelectorAll('.repo-tab'));
-  const sections = tabs
-    .map((tab) => document.querySelector(tab.getAttribute('href')))
-    .filter(Boolean);
-
-  if ('IntersectionObserver' in window && sections.length) {
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (!entry.isIntersecting) return;
-        tabs.forEach((tab) => {
-          tab.classList.toggle('is-active', tab.getAttribute('href') === `#${entry.target.id}`);
-        });
-      });
-    }, { rootMargin: '-30% 0px -60% 0px' });
-
-    sections.forEach((section) => observer.observe(section));
-  }
-}
-
-/* ================================================================
-   11. FAQ
-================================================================ */
-function initFAQ() {
-  document.querySelectorAll('.faq-item').forEach((item) => {
-    const button = item.querySelector('.faq-q');
-    const answer = item.querySelector('.faq-a');
-    if (!button || !answer) return;
-
-    button.addEventListener('click', () => {
-      const isOpen = item.classList.contains('open');
-
-      document.querySelectorAll('.faq-item.open').forEach((other) => {
-        other.classList.remove('open');
-        other.querySelector('.faq-q')?.setAttribute('aria-expanded', 'false');
-        const otherAnswer = other.querySelector('.faq-a');
-        if (otherAnswer) otherAnswer.style.maxHeight = null;
-      });
-
-      if (!isOpen) {
-        item.classList.add('open');
-        button.setAttribute('aria-expanded', 'true');
-        answer.style.maxHeight = `${answer.scrollHeight}px`;
-      }
-    });
+    const input = $('amountInput');
+    scrollToEl(input);
+    try { input?.focus({ preventScroll: true }); } catch { /* ignore */ }
   });
 }
 
+function resetToForm() {
+  if (STATE.pollTimer) clearTimeout(STATE.pollTimer);
+
+  STATE.isProcessing = false;
+  STATE.reference = '';
+  STATE.accessCode = '';
+  STATE.lastPayment = null;
+  STATE.amountValue = 0;
+  STATE.amountNGN = 0;
+
+  if ($('amountInput')) $('amountInput').value = '';
+  ['buyerName', 'githubHandle', 'workReference', 'paymentNote'].forEach((id) => {
+    const el = $(id);
+    if (el) el.value = '';
+  });
+
+  setAmountError('');
+  setEmailError('');
+  setLoading(false);
+  updateAmountDisplay();
+  showPanel('form');
+  $('amountInput')?.focus();
+}
+
 /* ================================================================
-   12. INIT
+   10. RETURN FROM REDIRECT (e.g. ?reference=… after a bank redirect)
 ================================================================ */
-function init() {
-  console.log(`⚡ ${CONFIG.BRAND_NAME} — initializing`);
+function handleReturningReference() {
+  const params = new URLSearchParams(window.location.search);
+  const ref = params.get('reference') || params.get('trxref');
+  if (!ref) return false;
 
-  initNavigation();
-  initAmountInput();
-  initCurrencyToggle();
-  initEmailValidation();
-  initActions();
-  initFAQ();
+  STATE.reference = ref;
+  STATE.lastPayment = { amountNGN: 0, currency: 'NGN', email: '' };
+  verifyPayment(ref);
+  window.history.replaceState({}, '', window.location.pathname);
+  return true;
+}
 
+/* ================================================================
+   11. INIT
+================================================================ */
+async function init() {
   const yearEl = $('footerYear');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  const rateEl = $('summaryRate');
-  if (rateEl) rateEl.textContent = `$1 = ₦${CONFIG.USD_TO_NGN_RATE.toLocaleString('en-US')}`;
+  initAmountInput();
+  initCurrencySwitch();
+  initEmailField();
+  initActions();
 
   updateAmountDisplay();
-  showState('form');
+  showPanel('form');
 
-  console.log(`🔑 Paystack: ${CONFIG.PAYSTACK_PUBLIC_KEY.startsWith('pk_live') ? 'LIVE' : 'TEST'}`);
-  console.log(`🏦 Subaccount: ${CONFIG.SUBACCOUNT_CODE}`);
-  console.log(`💱 Rate: $1 = ₦${CONFIG.USD_TO_NGN_RATE}`);
-  console.log(`✅ ${CONFIG.BRAND_NAME} ready`);
+  await loadConfig();
+  updateAmountDisplay();
+
+  const returning = handleReturningReference();
+  if (!returning) $('amountInput')?.focus();
 }
 
 if (document.readyState === 'loading') {
@@ -753,5 +720,5 @@ if (document.readyState === 'loading') {
 }
 
 /* ================================================================
-   END OF app.js
+   END
 ================================================================ */

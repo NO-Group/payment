@@ -1,129 +1,154 @@
-# DevPay — GitHub work payments
+# DevPay — payments for GitHub work
 
-A GitHub-styled, single-page invoice site for contract development work. There is
-**no fixed price**: whoever is paying types the amount you agreed on and pays it
-through **Paystack**, with every charge routed to your **subaccount**.
+A single, focused payment screen: the payer types the amount you agreed on, pays
+through **Paystack**, and the success screen only appears after **Paystack's
+server confirms the charge**. No fixed price, no trust in the browser.
 
 ```
-index.html      page structure (GitHub repo/issue chrome, table, FAQ)
-css/style.css   Primer-ish design system, light + dark
-js/app.js       all logic — config, amount parsing, Paystack checkout
+server.js        Node server: static files + initialize + verify + webhook
+index.html       the payment screen
+css/style.css    the styles
+js/app.js        the browser flow (no secret key, no prices)
+.env.example     copy to .env and fill in
 ```
 
-No build step. Host it on GitHub Pages, Netlify, Vercel, or any static host.
+Node 18+ (uses built-in `fetch`). No dependencies, no build step.
 
 ---
 
-## 1. Money routing (important)
-
-Everything lives at the top of `js/app.js`:
-
-```js
-const CONFIG = {
-  PAYSTACK_PUBLIC_KEY: 'pk_live_…',
-  SUBACCOUNT_CODE: 'ACCT_4i2l4tyiv5p48cu',   // ← funds land here
-  BEARER: 'account',                          // who absorbs Paystack's fee
-  MAIN_ACCOUNT_FLAT_CHARGE_NGN: 0,            // flat ₦ kept by the main account
-  CHARGE_CURRENCY: 'NGN',
-  USD_TO_NGN_RATE: 1600,
-  MIN_CHARGE_NGN: 100,                        // Paystack's floor
-  MAX_CHARGE_NGN: 5000000,                    // soft ceiling
-};
-```
-
-The real split is decided by the subaccount's own `percentage_charge` (set in the
-Paystack dashboard when the subaccount was created), not by this page.
-
-| Intent | Setting |
-| --- | --- |
-| Everything to the subaccount | Subaccount `percentage_charge = 100`, `MAIN_ACCOUNT_FLAT_CHARGE_NGN: 0` |
-| Keep a flat fee per payment | `MAIN_ACCOUNT_FLAT_CHARGE_NGN: 500` (₦500 per payment) |
-| Keep a percentage | Set the subaccount `percentage_charge` in the dashboard |
-| Subaccount pays the fee | `BEARER: 'subaccount'` |
-
-> ⚠️ `MAIN_ACCOUNT_FLAT_CHARGE_NGN` is a **flat Naira amount retained by the main
-> account**, sent as `transaction_charge` (converted to kobo). It is not a
-> percentage. Leave it at `0` unless you deliberately want to keep a slice.
-
-### Before you go live
-
-1. Replace `PAYSTACK_PUBLIC_KEY` with your own public key (`pk_live_…`). The key
-   in the file was already committed to this repo — rotate it if it's yours.
-2. Confirm `ACCT_4i2l4tyiv5p48cu` exists under the **same business** as that key
-   (test subaccounts don't work with live keys, and vice-versa).
-3. Adjust `BEARER` / `MAIN_ACCOUNT_FLAT_CHARGE_NGN` to match your split.
-4. Set the rate, brand name, GitHub handle and support email in `CONFIG`.
-
----
-
-## 2. How the amount works
-
-- The payer types **any** amount. No tiers, no rate card, no preset buttons.
-- They can type in **₦ NGN** or **$ USD**; the summary shows the exact Naira
-  amount that Paystack will charge (converted at `USD_TO_NGN_RATE`).
-- Input is sanitised while typing: thousands separators, max 2 decimals,
-  letters/punctuation stripped.
-- Guards:
-  - `MIN_CHARGE_NGN` (default ₦100) — Paystack's minimum.
-  - `MAX_CHARGE_NGN` (default ₦5,000,000) — a soft ceiling that asks for an email
-    instead of a payment, so large transfers don't break reconciliation.
-- The amount Paystack receives is `kobo = NGN × 100`, as an integer.
-- Paystack's own fee is deducted from settlement; the site never adds anything on
-  top, and the FAQ says so explicitly.
-
----
-
-## 3. Receipts
-
-On success the page shows: reference, amount typed, Naira charged, email, GitHub
-handle, PR/issue reference, the note, and the subaccount. There's a **Copy
-reference** button and a **Print receipt** action (print stylesheet outputs only
-the receipt).
-
----
-
-## 4. Verifying payments (recommended)
-
-The success screen is driven by Paystack's browser callback — good for a receipt
-UI, **not proof of payment**. For real fulfilment:
-
-1. Point your Paystack **webhook URL** at a serverless function.
-2. Verify the `x-paystack-signature` HMAC with your **secret** key.
-3. Check the transaction's `subaccount` matches `ACCT_4i2l4tyiv5p48cu`.
-4. Only then mark the invoice paid.
-
-Never put the secret key in `js/app.js` or anywhere in this repo.
-
----
-
-## 5. Customising
-
-- **Copy** — all text is in `index.html`, in commented sections.
-- **Recent invoices table** — the rows at `id="work"` are samples; replace them
-  with your real invoices (status, reference/PR, payer initials + name, amount,
-  date).
-- **Colours / theme** — tokens at the top of `css/style.css`; the page follows
-  `prefers-color-scheme` automatically.
-- **Keyboard** — pressing `/` jumps to the amount field, like GitHub's search.
-
----
-
-## 6. Local preview
+## Run it
 
 ```bash
-python3 -m http.server 8000
-# open http://localhost:8000
+cp .env.example .env      # add your Paystack keys
+node server.js            # http://localhost:3000
 ```
 
-Serve over HTTP rather than opening the file directly so the Paystack script
-behaves consistently.
+Open the site, type an amount, pay with a test card
+(`4084 0840 8408 4081`, any future date, CVV `408`, PIN `0000`) once
+`PAYSTACK_SECRET_KEY` is a `sk_test_…` key.
 
 ---
 
-## Status / caveats
+## How a payment actually works
 
-- Static frontend only — no backend, no database, no invoice records stored.
-- ✅ Subaccount routing wired through `subaccount`, `bearer`, `transaction_charge`.
-- ✅ Custom amounts, NGN/USD entry, validation, receipts, print.
-- ⚠️ No server-side verification or webhook yet (see §4).
-- ⚠️ The "Recent invoices" rows are sample data, not real transactions.
+```
+browser                      your server                     Paystack
+   │  POST /api/initialize        │                              │
+   ├─────────────────────────────►│  initialize (SECRET key)     │
+   │                              ├─────────────────────────────►│
+   │   { reference, accessCode }  │                              │
+   │◄─────────────────────────────┤                              │
+   │  PaystackPop.resumeTransaction(accessCode)                  │
+   ├────────────────────────────────────────────────────────────►│
+   │        buyer pays in the Paystack popup                     │
+   │  onSuccess ──► GET /api/verify/:reference                   │
+   ├─────────────────────────────►│  verify (SECRET key)         │
+   │                              ├─────────────────────────────►│
+   │  { status: success|failed|…} │                              │
+   │◄─────────────────────────────┤                              │
+   │  ✅ success screen ONLY when the server says success        │
+```
+
+Why it's built this way:
+
+- **The reference comes from your server**, not from the popup callback. A faked
+  callback can't produce a reference Paystack knows about.
+- **`/api/verify` is the only thing that can show the success screen.** The
+  browser never decides that a payment succeeded.
+- **`status: pending/ongoing` is polled** (every 2.5 s, `VERIFY_ATTEMPTS` times)
+  because bank transfers and USSD settle after the popup closes.
+- **Wrong subaccount is not success.** If Paystack reports the money went
+  anywhere other than `SUBACCOUNT_CODE`, the screen says "routing needs review"
+  instead of claiming success.
+- **Returning from a redirect** (`?reference=…`) triggers the same verification,
+  so a bank redirect lands on the correct screen.
+
+---
+
+## Money routing
+
+Set in `.env`:
+
+| Variable | Meaning |
+| --- | --- |
+| `SUBACCOUNT_CODE` | Every transaction is initialised with this subaccount (default `ACCT_4i2l4tyiv5p48cu`) |
+| `BEARER` | `account` or `subaccount` — who absorbs Paystack's fee |
+| `TRANSACTION_CHARGE_NGN` | Flat Naira amount retained by the **main** account per payment (0 = none) |
+| `USD_TO_NGN_RATE` | Rate used to convert what the payer types in USD |
+| `MIN_AMOUNT_NGN` / `MAX_AMOUNT_NGN` | Server-enforced limits (default ₦100 / ₦5,000,000) |
+
+The percentage split itself lives on the subaccount in your Paystack dashboard
+(`percentage_charge`). `TRANSACTION_CHARGE_NGN` overrides it with a flat amount —
+it is **not** a percentage.
+
+Amounts are validated and converted **on the server**, so the kobo value sent to
+Paystack can't be tampered with by editing the page.
+
+---
+
+## Webhook (recommended)
+
+Set your Paystack webhook URL to:
+
+```
+https://your-domain.com/api/paystack/webhook
+```
+
+`server.js` verifies the `x-paystack-signature` HMAC (SHA-512, your secret key)
+with a timing-safe comparison, then logs the charge. **Add your fulfilment where
+the `charge.success` handler logs** — mark the invoice paid, email the receipt,
+update a sheet. This is what catches payments where the buyer closed the tab
+before verification.
+
+Webhooks are retried by Paystack, so make your handler idempotent by reference.
+
+---
+
+## What the payer sees
+
+1. Amount (typed, ₦ or $ toggle) → email → name / GitHub handle / PR / note.
+2. "Opening checkout…" → Paystack popup.
+3. **"Confirming with Paystack"** while the server verifies.
+4. **Payment confirmed** with amount, reference, method, date, GitHub handle and
+   a "verified by Paystack server" line — plus copy reference and print.
+   Or a specific failure: declined, abandoned, not found, not confirmed yet, or
+   routing needs review.
+
+---
+
+## Security notes
+
+- The **secret key only ever exists in `server.js`'s process memory** (from
+  `.env`). It is never served, injected or exposed. `.env` is gitignored.
+- `/server.js`, `/package.json`, `/.env*`, `/.git/*` and any dot-path are
+  blocked by the static handler; path traversal is rejected.
+- Both API routes are rate-limited per IP (`INIT_RATE_LIMIT`,
+  `VERIFY_RATE_LIMIT`).
+- All metadata sent to Paystack is length-clamped and control characters are
+  stripped.
+- Still true: this is a **payment page**, not an invoice database. There's no
+  record of who owes what beyond Paystack and your webhook handler.
+
+---
+
+## Deploying
+
+Any Node host: Render, Railway, Fly, a VPS, or a serverless wrapper around the
+handlers. Requirements:
+
+1. `node server.js` (or a process manager behind a reverse proxy with TLS).
+2. Env vars from `.env.example` set in the host's dashboard — don't upload `.env`.
+3. `SITE_URL` set to your public HTTPS URL (used for `callback_url`).
+4. Paystack webhook pointed at `/api/paystack/webhook`.
+5. Rotate the public key that was previously committed in this repo.
+
+Health check: `GET /api/health` → `{ ok: true, paystackConfigured: true }`.
+
+---
+
+## Limits / non-goals
+
+- No database: invoices aren't stored. Use the webhook to persist them.
+- No user accounts, no subscriptions, no refunds UI — refund from the Paystack
+  dashboard.
+- Amount is free-form by design; there's no price list to maintain.
