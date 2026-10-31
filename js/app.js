@@ -2,9 +2,10 @@
    DEVPAY — GITHUB WORK PAYMENTS
    Frontend checkout powered by Paystack Inline (v2)
 
-   Payments are routed to a Paystack SUBACCOUNT via the
-   `subaccount` parameter. Everything you normally need to edit
-   lives in the CONFIG block below.
+   No fixed prices: the payer types the amount they owe.
+   Every payment is routed to a Paystack subaccount (see CONFIG).
+
+   ⚠️ Public key only. Never put your Paystack secret key in this file.
 ================================================================ */
 
 'use strict';
@@ -13,132 +14,70 @@
    1. CONFIGURATION
 ================================================================ */
 const CONFIG = {
-  /* Paystack PUBLIC key.
-     Dashboard → Settings → API Keys & Webhooks
-     Test: pk_test_xxx · Live: pk_live_xxx */
+  /* Paystack PUBLIC key — Dashboard → Settings → API Keys & Webhooks */
   PAYSTACK_PUBLIC_KEY: 'pk_live_1d48c7981d1abf7396474499a369ab7bef17740a',
 
-  /* ── SUBACCOUNT ROUTING ──────────────────────────────────────
-     Every payment is initialised with this subaccount code, so
-     funds land there and not in the main account.                */
+  /* ── SUBACCOUNT ROUTING ─────────────────────────────────────
+     Every transaction is initialised with this code so funds land
+     in the subaccount rather than the main account.              */
   SUBACCOUNT_CODE: 'ACCT_4i2l4tyiv5p48cu',
 
-  /* Who absorbs Paystack's transaction fee.
-     'account'    → main account pays the fee (default)
-     'subaccount' → subaccount pays the fee                          */
+  /* Who absorbs Paystack's fee: 'account' or 'subaccount' */
   BEARER: 'account',
 
-  /* Optional flat fee (in NAIRA) retained by the MAIN account on
-     every split. 0 = no retention, the subaccount keeps the full
-     split percentage configured on the subaccount itself.
-     Example: 500 → ₦500 stays with the main account per payment.   */
+  /* Flat fee (in NAIRA) kept by the MAIN account per payment.
+     0 = nothing retained; the subaccount's own percentage_charge
+     decides the split. This is a flat amount, not a percentage.   */
   MAIN_ACCOUNT_FLAT_CHARGE_NGN: 0,
 
-  /* ── BRANDING / CONTACT ─────────────────────────────────────── */
+  /* ── BRANDING ─────────────────────────────────────────────── */
   BRAND_NAME: 'DevPay',
   GITHUB_HANDLE: '@yourhandle',
   SUPPORT_EMAIL: 'hello@example.com',
-  SITE_URL: 'https://YOUR_USERNAME.github.io/devpay/',
 
-  /* ── CURRENCY ───────────────────────────────────────────────── */
-  CURRENCY: 'NGN',
-  USD_TO_NGN_RATE: 1600,          // shown to the buyer; update as FX moves
-  MIN_CHARGE_USD: 1,
+  /* ── CURRENCY ─────────────────────────────────────────────── */
+  CHARGE_CURRENCY: 'NGN',        // Paystack always charges in NGN here
+  USD_TO_NGN_RATE: 1600,         // display/conversion rate — update as FX moves
+
+  /* Limits (Paystack charges NGN; these are NGN limits) */
+  MIN_CHARGE_NGN: 100,           // Paystack's floor is ₦100
+  MAX_CHARGE_NGN: 5000000,       // soft ceiling; above this, talk first
 };
 
 /* ================================================================
-   2. SCOPES / TIERS
-   Prices are quoted in USD, charged in NGN via Paystack.
-================================================================ */
-const TIERS = [
-  {
-    id: 1,
-    name: 'Quick Fix',
-    priceUSD: 10,
-    icon: 'fa-bug',
-    tagline: 'One small, well-defined bug',
-    turnaround: '48 hours',
-    features: [
-      'One PR, under 50 lines',
-      'Repro steps documented',
-      'Regression test added',
-      '48h turnaround',
-    ],
-  },
-  {
-    id: 2,
-    name: 'Bug Fix',
-    priceUSD: 25,
-    icon: 'fa-wrench',
-    tagline: 'Standard issue + tests',
-    turnaround: '24 hours',
-    features: [
-      'Up to 3 files / 150 lines',
-      'Tests + CI green',
-      'PR description & changelog',
-      '7 days post-merge support',
-    ],
-  },
-  {
-    id: 3,
-    name: 'Feature PR',
-    priceUSD: 60,
-    icon: 'fa-rocket',
-    tagline: 'Scoped feature, reviewed & merged',
-    turnaround: '5 working days',
-    features: [
-      'Up to 5 working days of build',
-      'Tests, docs & migration notes',
-      'One review round included',
-      '14 days post-merge support',
-    ],
-  },
-  {
-    id: 4,
-    name: 'Retainer',
-    priceUSD: 200,
-    icon: 'fa-infinity',
-    tagline: 'Monthly, priority queue',
-    turnaround: 'Priority queue',
-    features: [
-      '20 hours / month on your repo',
-      'Priority review & async standups',
-      'Weekly merged-PR summary',
-      'Cancel or pause anytime',
-    ],
-  },
-];
-
-/* Promo codes — percentage or flat USD discount */
-const PROMOS = {
-  MERGE10: { type: 'percent', value: 10, label: '10% off' },
-  FIRSTPR: { type: 'flat', value: 5, label: '$5 off' },
-  RETAINER15: { type: 'percent', value: 15, label: '15% off' },
-};
-
-/* ================================================================
-   3. STATE
+   2. STATE
 ================================================================ */
 const STATE = {
-  selectedTier: TIERS[2],
-  appliedPromo: null,
-  discountUSD: 0,
-  finalPriceUSD: 60,
+  currency: 'NGN',          // what the payer types in
+  amountValue: 0,           // parsed amount in STATE.currency
+  amountNGN: 0,             // converted amount in Naira
   isProcessing: false,
   buyerEmail: '',
   buyerName: '',
   githubHandle: '',
   workReference: '',
+  note: '',
   currentReference: '',
 };
 
 /* ================================================================
-   4. HELPERS
+   3. HELPERS
 ================================================================ */
 const $ = (id) => document.getElementById(id);
 
-function usdToKobo(usd) {
-  return Math.round(usd * CONFIG.USD_TO_NGN_RATE * 100);
+function escapeHTML(str) {
+  return String(str).replace(/[&<>"']/g, (c) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  }[c]));
+}
+
+function formatNGN(amount) {
+  return new Intl.NumberFormat('en-NG', {
+    style: 'currency',
+    currency: 'NGN',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(amount);
 }
 
 function formatUSD(amount) {
@@ -146,23 +85,46 @@ function formatUSD(amount) {
     style: 'currency',
     currency: 'USD',
     minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
   }).format(amount);
 }
 
-function formatNGNFromKobo(kobo) {
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-    minimumFractionDigits: 2,
-  }).format(kobo / 100);
+function formatMoney(amount, currency) {
+  return currency === 'USD' ? formatUSD(amount) : formatNGN(amount);
 }
 
-function formatNGNFromUSD(usd) {
-  return new Intl.NumberFormat('en-NG', {
-    style: 'currency',
-    currency: 'NGN',
-    maximumFractionDigits: 0,
-  }).format(usd * CONFIG.USD_TO_NGN_RATE);
+/* Thousands separators while typing, decimals up to 2 places */
+function formatAmountInput(raw, currency) {
+  let value = String(raw).replace(/[^\d.]/g, '');
+
+  const firstDot = value.indexOf('.');
+  if (firstDot !== -1) {
+    value = value.slice(0, firstDot + 1) + value.slice(firstDot + 1).replace(/\./g, '');
+    const [whole, decimals] = value.split('.');
+    value = `${whole}.${(decimals || '').slice(0, 2)}`;
+  }
+
+  const [whole, decimals] = value.split('.');
+  const grouped = whole
+    ? Number(whole).toLocaleString('en-US', { maximumFractionDigits: 0 })
+    : '';
+
+  if (value.includes('.')) return `${grouped || '0'}.${decimals ?? ''}`;
+  return grouped;
+}
+
+function parseAmount(formatted) {
+  const clean = String(formatted).replace(/,/g, '');
+  const parsed = Number.parseFloat(clean);
+  return Number.isFinite(parsed) ? parsed : 0;
+}
+
+function toNGN(value, currency) {
+  return currency === 'USD' ? value * CONFIG.USD_TO_NGN_RATE : value;
+}
+
+function toKobo(ngnAmount) {
+  return Math.round(ngnAmount * 100);
 }
 
 function generateReference() {
@@ -175,13 +137,6 @@ function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(String(email).trim());
 }
 
-function escapeHTML(str) {
-  return String(str).replace(/[&<>"']/g, (c) => ({
-    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
-  }[c]));
-}
-
-/* Scroll helper — guarded so it no-ops in environments without layout */
 function scrollToEl(el, options = { behavior: 'smooth', block: 'start' }) {
   if (el && typeof el.scrollIntoView === 'function') {
     try { el.scrollIntoView(options); } catch { /* ignore */ }
@@ -189,15 +144,15 @@ function scrollToEl(el, options = { behavior: 'smooth', block: 'start' }) {
 }
 
 /* ================================================================
-   5. TOASTS
+   4. TOASTS
 ================================================================ */
 function showToast({ type = 'info', title = '', message = '', duration = 4500 }) {
   const container = $('toastContainer');
   if (!container) return;
 
   const icons = {
-    success: 'fa-circle-check',
-    error: 'fa-circle-exclamation',
+    success: 'fa-check',
+    error: 'fa-xmark',
     info: 'fa-circle-info',
     warning: 'fa-triangle-exclamation',
   };
@@ -205,7 +160,7 @@ function showToast({ type = 'info', title = '', message = '', duration = 4500 })
   const toast = document.createElement('div');
   toast.className = `toast toast-${type}`;
   toast.innerHTML = `
-    <div class="toast-icon"><i class="fas ${icons[type] || icons.info}"></i></div>
+    <i class="fas ${icons[type] || icons.info} toast-icon"></i>
     <div class="toast-body">
       ${title ? `<div class="toast-title">${escapeHTML(title)}</div>` : ''}
       ${message ? `<div class="toast-msg">${escapeHTML(message)}</div>` : ''}
@@ -218,7 +173,7 @@ function showToast({ type = 'info', title = '', message = '', duration = 4500 })
 
   const remove = () => {
     toast.classList.remove('show');
-    setTimeout(() => toast.remove(), 250);
+    setTimeout(() => toast.remove(), 200);
   };
 
   toast.querySelector('.toast-close').addEventListener('click', remove);
@@ -226,146 +181,164 @@ function showToast({ type = 'info', title = '', message = '', duration = 4500 })
 }
 
 /* ================================================================
-   6. PRICING
+   5. AMOUNT INPUT
 ================================================================ */
-function calculateFinalPrice(baseUSD) {
-  if (!STATE.appliedPromo) return baseUSD;
+function initAmountInput() {
+  const input = $('amountInput');
+  if (!input) return;
 
-  const promo = STATE.appliedPromo;
-  let discount = promo.type === 'percent'
-    ? (baseUSD * promo.value) / 100
-    : promo.value;
+  input.addEventListener('input', () => {
+    const formatted = formatAmountInput(input.value, STATE.currency);
+    if (formatted !== input.value) {
+      input.value = formatted;
+      // keep the caret at the end after reformatting
+      const end = formatted.length;
+      try { input.setSelectionRange(end, end); } catch { /* ignore */ }
+    }
 
-  discount = Math.min(discount, Math.max(0, baseUSD - CONFIG.MIN_CHARGE_USD));
-  return Math.round((baseUSD - discount) * 100) / 100;
+    STATE.amountValue = parseAmount(input.value);
+    updateAmountDisplay();
+    setAmountError('');
+  });
+
+  input.addEventListener('blur', () => {
+    if (STATE.amountValue > 0) {
+      const decimals = STATE.currency === 'NGN' ? 2 : 2;
+      input.value = STATE.amountValue.toLocaleString('en-US', {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      });
+      STATE.amountValue = parseAmount(input.value);
+      updateAmountDisplay();
+    }
+  });
 }
 
-function updatePricing() {
-  const tier = STATE.selectedTier;
-  STATE.finalPriceUSD = calculateFinalPrice(tier.priceUSD);
-  STATE.discountUSD = Math.round((tier.priceUSD - STATE.finalPriceUSD) * 100) / 100;
+function updateAmountDisplay() {
+  const value = STATE.amountValue;
+  STATE.amountNGN = toNGN(value, STATE.currency);
 
-  const kobo = usdToKobo(STATE.finalPriceUSD);
+  const summaryAmount = $('summaryAmount');
+  const summaryTotal = $('summaryTotal');
+  const conversion = $('amountConversion');
+  const btnText = $('payBtnText');
+  const btn = $('payBtn');
 
-  // Form summary
-  if ($('summaryTierName')) $('summaryTierName').textContent = tier.name;
-  if ($('summaryPrice')) $('summaryPrice').textContent = formatUSD(tier.priceUSD);
-  if ($('summaryRate')) $('summaryRate').textContent = `$1 = ₦${CONFIG.USD_TO_NGN_RATE.toLocaleString('en-US')}`;
-  if ($('summaryTotal')) $('summaryTotal').textContent = formatUSD(STATE.finalPriceUSD);
-  if ($('summaryCharge')) $('summaryCharge').textContent = formatNGNFromKobo(kobo);
+  if (summaryAmount) summaryAmount.textContent = formatMoney(value, STATE.currency);
 
-  // Discount row
-  const discountRow = $('discountRow');
-  if (discountRow) {
-    if (STATE.discountUSD > 0 && STATE.appliedPromo) {
-      discountRow.style.display = 'flex';
-      if ($('discountAmount')) $('discountAmount').textContent = `-${formatUSD(STATE.discountUSD)}`;
-      if ($('summaryPromoLabel')) $('summaryPromoLabel').textContent = `(${STATE.appliedPromo.code})`;
+  if (summaryTotal) {
+    if (value > 0) {
+      summaryTotal.textContent = STATE.currency === 'NGN'
+        ? formatNGN(STATE.amountNGN)
+        : `${formatUSD(value)} · ${formatNGN(STATE.amountNGN)}`;
     } else {
-      discountRow.style.display = 'none';
+      summaryTotal.textContent = formatNGN(0);
     }
   }
 
-  // Pay button
-  if ($('payBtnText')) {
-    $('payBtnText').textContent = `Pay ${formatUSD(STATE.finalPriceUSD)} — Secure checkout`;
+  if (conversion) {
+    conversion.textContent = STATE.currency === 'USD' && value > 0
+      ? `= ${formatNGN(STATE.amountNGN)} charged by Paystack.`
+      : 'Charged in Naira by Paystack.';
   }
 
-  // Side preview
-  if ($('previewName')) $('previewName').textContent = tier.name;
-  if ($('previewPrice')) $('previewPrice').textContent = formatUSD(STATE.finalPriceUSD);
-  if ($('previewNgn')) $('previewNgn').textContent = `≈ ${formatNGNFromUSD(STATE.finalPriceUSD)}`;
-  if ($('previewTurnaround')) $('previewTurnaround').textContent = tier.turnaround;
-
-  const featureList = $('previewFeatures');
-  if (featureList) {
-    featureList.innerHTML = tier.features
-      .map((f) => `<li><i class="fas fa-check"></i> ${escapeHTML(f)}</li>`)
-      .join('');
+  if (btnText) {
+    btnText.textContent = value > 0
+      ? `Pay ${formatMoney(value, STATE.currency)}`
+      : 'Enter an amount to continue';
   }
-
-  // Tier option buttons
-  document.querySelectorAll('.tier-option').forEach((btn) => {
-    btn.classList.toggle('is-active', Number(btn.dataset.tier) === tier.id);
-  });
-
-  // Rate cards highlighting
-  document.querySelectorAll('[data-tier-card]').forEach((card) => {
-    card.classList.toggle('is-selected', Number(card.dataset.tierCard) === tier.id);
-  });
+  if (btn) btn.disabled = value <= 0;
 }
 
-function selectTier(id) {
-  const tier = TIERS.find((t) => t.id === Number(id));
-  if (!tier) return;
-
-  STATE.selectedTier = tier;
-  STATE.appliedPromo = null;
-  STATE.discountUSD = 0;
-
-  const promoInput = $('promoCode');
-  if (promoInput) promoInput.value = '';
-  const promoResult = $('promoResult');
-  if (promoResult) {
-    promoResult.textContent = '';
-    promoResult.className = 'promo-result';
-  }
-
-  updatePricing();
-}
-
-/* ================================================================
-   7. TIER SELECTION / RATE CARDS
-================================================================ */
-function initTierSelection() {
-  // Buttons inside the checkout
-  document.querySelectorAll('.tier-option').forEach((btn) => {
+function initCurrencyToggle() {
+  document.querySelectorAll('.currency-btn').forEach((btn) => {
     btn.addEventListener('click', () => {
-      selectTier(btn.dataset.tier);
-      scrollToCheckoutSummary();
-    });
-  });
+      const next = btn.dataset.currency;
+      if (next === STATE.currency) return;
 
-  // Rate card buttons
-  document.querySelectorAll('[data-tier][data-price]').forEach((btn) => {
-    if (btn.classList.contains('tier-option')) return;
-    btn.addEventListener('click', () => {
-      selectTier(btn.dataset.tier);
-      showState('form');
-      scrollToEl(document.getElementById('pay'), { behavior: 'smooth', block: 'start' });
-      setTimeout(() => {
-        try { $('buyerEmail')?.focus({ preventScroll: true }); } catch { /* ignore */ }
-      }, 650);
+      // Convert the typed amount into the new currency
+      const ngn = toNGN(STATE.amountValue, STATE.currency);
+      STATE.currency = next;
+      STATE.amountValue = next === 'USD' ? ngn / CONFIG.USD_TO_NGN_RATE : ngn;
+      STATE.amountValue = Math.round(STATE.amountValue * 100) / 100;
+
+      document.querySelectorAll('.currency-btn').forEach((b) => {
+        b.classList.toggle('is-active', b.dataset.currency === next);
+      });
+      if ($('amountPrefix')) $('amountPrefix').textContent = next === 'USD' ? '$' : '₦';
+      if ($('amountInput')) {
+        $('amountInput').value = STATE.amountValue > 0
+          ? STATE.amountValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          : '';
+      }
+
+      updateAmountDisplay();
+      setAmountError('');
     });
   });
 }
 
-function scrollToCheckoutSummary() {
-  scrollToEl($('orderSummary'), { behavior: 'smooth', block: 'center' });
+function setAmountError(message) {
+  const input = $('amountInput');
+  const errorEl = $('amountError');
+  const wrap = $('amountWrap');
+
+  if (wrap) wrap.classList.toggle('has-error', Boolean(message));
+  if (input) input.setAttribute('aria-invalid', message ? 'true' : 'false');
+  if (errorEl) {
+    errorEl.textContent = message;
+    errorEl.classList.toggle('visible', Boolean(message));
+  }
+}
+
+function validateAmount() {
+  const value = STATE.amountValue;
+  const ngn = toNGN(value, STATE.currency);
+
+  if (!value || value <= 0) {
+    setAmountError('Enter the amount we agreed on — any amount above zero.');
+    return false;
+  }
+  if (ngn < CONFIG.MIN_CHARGE_NGN) {
+    setAmountError(`Paystack's minimum is ${formatNGN(CONFIG.MIN_CHARGE_NGN)}. Enter a larger amount.`);
+    return false;
+  }
+  if (ngn > CONFIG.MAX_CHARGE_NGN) {
+    setAmountError(
+      `That's above ${formatNGN(CONFIG.MAX_CHARGE_NGN)}. Email me first so the settlement and receipt are set up correctly.`
+    );
+    return false;
+  }
+
+  setAmountError('');
+  return true;
 }
 
 /* ================================================================
-   8. FORM VALIDATION
+   6. EMAIL VALIDATION
 ================================================================ */
-function validateForm() {
+function validateEmail() {
   const emailEl = $('buyerEmail');
   const errorEl = $('emailError');
   const email = emailEl?.value.trim() || '';
 
   if (!email) {
-    setFieldError(emailEl, errorEl, 'Enter the email address for your receipt.');
+    setEmailError('Enter the email address for your receipt.');
     return false;
   }
   if (!isValidEmail(email)) {
-    setFieldError(emailEl, errorEl, 'That email doesn\'t look right — check and try again.');
+    setEmailError('That email doesn\'t look right — check and try again.');
     return false;
   }
 
-  setFieldError(emailEl, errorEl, '');
+  setEmailError('');
   return true;
 }
 
-function setFieldError(input, errorEl, message) {
+function setEmailError(message) {
+  const input = $('buyerEmail');
+  const errorEl = $('emailError');
+
   if (input) {
     input.classList.toggle('has-error', Boolean(message));
     input.setAttribute('aria-invalid', message ? 'true' : 'false');
@@ -376,103 +349,45 @@ function setFieldError(input, errorEl, message) {
   }
 }
 
-function initRealTimeValidation() {
+function initEmailValidation() {
   const emailEl = $('buyerEmail');
-  const errorEl = $('emailError');
   const iconEl = $('emailValidIcon');
   if (!emailEl) return;
 
   emailEl.addEventListener('input', () => {
     const value = emailEl.value.trim();
     if (!value) {
-      setFieldError(emailEl, errorEl, '');
+      setEmailError('');
       if (iconEl) iconEl.innerHTML = '';
       return;
     }
-
     if (isValidEmail(value)) {
-      setFieldError(emailEl, errorEl, '');
-      if (iconEl) iconEl.innerHTML = '<i class="fas fa-circle-check"></i>';
+      setEmailError('');
+      if (iconEl) iconEl.innerHTML = '<i class="fas fa-check"></i>';
     } else {
       if (iconEl) iconEl.innerHTML = '';
     }
   });
 
   emailEl.addEventListener('blur', () => {
-    if (emailEl.value.trim()) validateForm();
+    if (emailEl.value.trim()) validateEmail();
   });
 }
 
 /* ================================================================
-   9. PROMO CODES
-================================================================ */
-function initPromoCode() {
-  const toggle = $('promoToggle');
-  const wrap = $('promoInputWrap');
-  const applyBtn = $('applyPromo');
-  const input = $('promoCode');
-  const result = $('promoResult');
-
-  toggle?.addEventListener('click', () => {
-    const isOpen = wrap.style.display !== 'none';
-    wrap.style.display = isOpen ? 'none' : 'block';
-    toggle.setAttribute('aria-expanded', String(!isOpen));
-    toggle.classList.toggle('open', !isOpen);
-    if (!isOpen) input?.focus();
-  });
-
-  const apply = () => {
-    const code = (input?.value || '').trim().toUpperCase();
-    if (!code) return;
-
-    const promo = PROMOS[code];
-    if (!promo) {
-      STATE.appliedPromo = null;
-      if (result) {
-        result.textContent = 'That code isn\'t valid.';
-        result.className = 'promo-result error';
-      }
-      updatePricing();
-      return;
-    }
-
-    STATE.appliedPromo = { ...promo, code };
-    updatePricing();
-
-    if (result) {
-      result.textContent = `Applied — ${promo.label}`;
-      result.className = 'promo-result success';
-    }
-  };
-
-  applyBtn?.addEventListener('click', apply);
-  input?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      apply();
-    }
-  });
-}
-
-/* ================================================================
-   10. BUTTON LOADING
-================================================================ */
-function setButtonLoading(loading) {
-  const content = $('payBtnContent');
-  const loader = $('payBtnLoader');
-  const btn = $('payBtn');
-
-  if (content) content.style.display = loading ? 'none' : 'flex';
-  if (loader) loader.style.display = loading ? 'flex' : 'none';
-  if (btn) btn.disabled = loading;
-}
-
-/* ================================================================
-   11. PAYSTACK CHECKOUT — ROUTED TO SUBACCOUNT
+   7. PAYSTACK CHECKOUT — ROUTED TO SUBACCOUNT
 ================================================================ */
 function initPaystackPayment() {
   if (STATE.isProcessing) return;
-  if (!validateForm()) {
+
+  const amountOK = validateAmount();
+  const emailOK = validateEmail();
+
+  if (!amountOK) {
+    $('amountInput')?.focus();
+    return;
+  }
+  if (!emailOK) {
     $('buyerEmail')?.focus();
     return;
   }
@@ -502,23 +417,25 @@ function initPaystackPayment() {
   STATE.buyerName = $('buyerName')?.value.trim() || '';
   STATE.githubHandle = $('githubHandle')?.value.trim() || '';
   STATE.workReference = $('workReference')?.value.trim() || '';
+  STATE.note = $('paymentNote')?.value.trim() || '';
 
   setButtonLoading(true);
 
   const reference = generateReference();
   STATE.currentReference = reference;
 
-  const tier = STATE.selectedTier;
-  const amountKobo = usdToKobo(STATE.finalPriceUSD);
+  const chargedNGN = Math.round(STATE.amountNGN * 100) / 100;
+  const amountKobo = toKobo(chargedNGN);
+  const typedAmount = formatMoney(STATE.amountValue, STATE.currency);
 
-  /* ── Paystack configuration ──────────────────────────────────
-     `subaccount` is what makes the money land in the subaccount.
-     `bearer` + `transaction_charge` fine-tune the split.        */
+  /* ── Paystack configuration ─────────────────────────────────
+     `subaccount` routes the money; `bearer` decides who pays the
+     fee; `transaction_charge` is the flat slice kept centrally.  */
   const paystackConfig = {
     key: CONFIG.PAYSTACK_PUBLIC_KEY,
     email: STATE.buyerEmail,
     amount: amountKobo,
-    currency: CONFIG.CURRENCY,
+    currency: CONFIG.CHARGE_CURRENCY,
     reference,
     ref: reference,
     label: CONFIG.BRAND_NAME,
@@ -530,21 +447,15 @@ function initPaystackPayment() {
     channels: ['card', 'bank', 'ussd', 'bank_transfer', 'mobile_money'],
 
     metadata: {
-      purpose: 'GitHub development work',
+      purpose: 'GitHub development work — custom amount',
       subaccount: CONFIG.SUBACCOUNT_CODE,
       custom_fields: [
         { display_name: 'Buyer Name', variable_name: 'buyer_name', value: STATE.buyerName || 'Anonymous' },
         { display_name: 'GitHub Handle', variable_name: 'github_handle', value: STATE.githubHandle || 'Not provided' },
-        { display_name: 'Scope', variable_name: 'scope', value: `${tier.name} ($${tier.priceUSD})` },
-        { display_name: 'Scope ID', variable_name: 'scope_id', value: String(tier.id) },
-        { display_name: 'Price USD', variable_name: 'price_usd', value: String(STATE.finalPriceUSD) },
-        { display_name: 'Work Reference', variable_name: 'work_reference', value: STATE.workReference || 'None' },
-        { display_name: 'Promo Code', variable_name: 'promo_code', value: STATE.appliedPromo?.code || 'None' },
-        {
-          display_name: 'Discount',
-          variable_name: 'discount',
-          value: STATE.discountUSD > 0 ? `$${STATE.discountUSD}` : 'None',
-        },
+        { display_name: 'Amount Typed', variable_name: 'amount_typed', value: `${typedAmount} (${STATE.currency})` },
+        { display_name: 'Amount NGN', variable_name: 'amount_ngn', value: String(chargedNGN) },
+        { display_name: 'PR / Issue', variable_name: 'work_reference', value: STATE.workReference || 'None' },
+        { display_name: 'Invoice Note', variable_name: 'invoice_note', value: STATE.note || 'None' },
       ],
     },
 
@@ -564,17 +475,12 @@ function initPaystackPayment() {
         message: 'No charges were made. Try again whenever you\'re ready.',
       });
     },
-
-    onLoad: function () {
-      /* Checkout iframe is up */
-    },
   };
 
   try {
     const popup = new PaystackPop();
     const result = popup.newTransaction(paystackConfig);
 
-    // v2 returns a promise — surface hard failures instead of hanging
     if (result && typeof result.then === 'function') {
       result.catch((error) => {
         console.error('Paystack error:', error);
@@ -594,13 +500,23 @@ function initPaystackPayment() {
     showToast({
       type: 'error',
       title: 'Payment error',
-      message: 'Could not open the payment window. Please refresh and try again.',
+      message: 'Could not open the payment window. Refresh and try again.',
     });
   }
 }
 
+function setButtonLoading(loading) {
+  const content = $('payBtnContent');
+  const loader = $('payBtnLoader');
+  const btn = $('payBtn');
+
+  if (content) content.style.display = loading ? 'none' : 'inline-flex';
+  if (loader) loader.style.display = loading ? 'inline-flex' : 'none';
+  if (btn) btn.disabled = loading || STATE.amountValue <= 0;
+}
+
 /* ================================================================
-   12. STATE PANELS
+   8. STATE PANELS
 ================================================================ */
 function showState(state) {
   const panels = {
@@ -614,29 +530,20 @@ function showState(state) {
     el.style.display = key === state ? 'block' : 'none';
   });
 
-  if (state !== 'form') {
-    scrollToEl($('paymentCard'), { behavior: 'smooth', block: 'center' });
-  }
+  if (state !== 'form') scrollToEl($('paymentCard'), { behavior: 'smooth', block: 'center' });
 }
 
 function handlePaymentSuccess(response) {
   const reference = response.reference || response.ref || STATE.currentReference;
-  const amountUSD = STATE.finalPriceUSD;
-  const kobo = usdToKobo(amountUSD);
 
   if ($('successRef')) $('successRef').textContent = reference;
-  if ($('successTier')) $('successTier').textContent = STATE.selectedTier.name;
-  if ($('successAmount')) $('successAmount').textContent = formatUSD(amountUSD);
-  if ($('successCharge')) $('successCharge').textContent = formatNGNFromKobo(kobo);
+  if ($('successAmount')) $('successAmount').textContent = formatMoney(STATE.amountValue, STATE.currency);
+  if ($('successCharge')) $('successCharge').textContent = formatNGN(STATE.amountNGN);
   if ($('successEmail')) $('successEmail').textContent = STATE.buyerEmail;
+  if ($('successEmailInline')) $('successEmailInline').textContent = STATE.buyerEmail;
   if ($('successGithub')) $('successGithub').textContent = STATE.githubHandle || 'Not provided';
-
-  const check = document.querySelector('.success-check');
-  if (check) {
-    check.classList.remove('animate');
-    void check.offsetWidth;          // restart the draw animation
-    check.classList.add('animate');
-  }
+  if ($('successWorkRef')) $('successWorkRef').textContent = STATE.workReference || 'None';
+  if ($('successNote')) $('successNote').textContent = STATE.note || 'None';
 
   showState('success');
 
@@ -651,15 +558,15 @@ function handlePaymentSuccess(response) {
 function handlePaymentFailed(message) {
   if ($('failedMessage')) {
     $('failedMessage').textContent = message
-      || 'Something interrupted the charge. No money left your account — you can retry.';
+      || 'No money left your account. You can retry with the same amount.';
   }
   showState('failed');
 }
 
 /* ================================================================
-   13. ACTION BUTTONS
+   9. ACTIONS
 ================================================================ */
-function initActionButtons() {
+function initActions() {
   $('paymentForm')?.addEventListener('submit', (e) => {
     e.preventDefault();
     initPaystackPayment();
@@ -670,23 +577,22 @@ function initActionButtons() {
     initPaystackPayment();
   });
 
-  $('changeTierBtn')?.addEventListener('click', () => {
+  $('changeAmountBtn')?.addEventListener('click', () => {
     showState('form');
-    scrollToEl($('tierOptions'), { behavior: 'smooth', block: 'center' });
+    scrollToEl($('amountInput'), { behavior: 'smooth', block: 'center' });
+    try { $('amountInput')?.focus({ preventScroll: true }); } catch { /* ignore */ }
   });
 
   $('buyAgainBtn')?.addEventListener('click', () => {
     showState('form');
     setButtonLoading(false);
-    const promoInput = $('promoCode');
-    if (promoInput) promoInput.value = '';
-    const promoResult = $('promoResult');
-    if (promoResult) {
-      promoResult.textContent = '';
-      promoResult.className = 'promo-result';
-    }
-    STATE.appliedPromo = null;
-    updatePricing();
+    const amountInput = $('amountInput');
+    const noteInput = $('paymentNote');
+    if (amountInput) amountInput.value = '';
+    if (noteInput) noteInput.value = '';
+    STATE.amountValue = 0;
+    STATE.amountNGN = 0;
+    updateAmountDisplay();
     scrollToEl($('paymentCard'), { behavior: 'smooth', block: 'center' });
   });
 
@@ -704,22 +610,30 @@ function initActionButtons() {
 }
 
 /* ================================================================
-   14. NAVIGATION
+   10. HEADER / NAV
 ================================================================ */
 function initNavigation() {
-  const nav = $('navbar');
+  const header = $('navbar');
   const hamburger = $('hamburger');
   const drawer = $('mobileDrawer');
 
-  const onScroll = () => nav?.classList.toggle('scrolled', window.scrollY > 20);
+  const onScroll = () => header?.classList.toggle('scrolled', window.scrollY > 8);
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
+
+  // Keep the repo tab bar pinned directly under the app header
+  const syncHeaderHeight = () => {
+    if (!header) return;
+    document.documentElement.style.setProperty('--header-h', `${header.offsetHeight}px`);
+  };
+  syncHeaderHeight();
+  window.addEventListener('resize', syncHeaderHeight);
 
   hamburger?.addEventListener('click', () => {
     const open = drawer?.classList.toggle('open');
     hamburger.classList.toggle('active', Boolean(open));
     hamburger.setAttribute('aria-expanded', String(Boolean(open)));
-    document.body.classList.toggle('nav-open', Boolean(open));
+    hamburger.innerHTML = open ? '<i class="fas fa-xmark"></i>' : '<i class="fas fa-bars"></i>';
   });
 
   drawer?.querySelectorAll('a').forEach((link) => {
@@ -727,10 +641,11 @@ function initNavigation() {
       drawer.classList.remove('open');
       hamburger?.classList.remove('active');
       hamburger?.setAttribute('aria-expanded', 'false');
-      document.body.classList.remove('nav-open');
+      if (hamburger) hamburger.innerHTML = '<i class="fas fa-bars"></i>';
     });
   });
 
+  // Smooth anchor scrolling with sticky-header offset
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
     link.addEventListener('click', (e) => {
       const id = link.getAttribute('href');
@@ -738,15 +653,45 @@ function initNavigation() {
       const target = document.querySelector(id);
       if (!target) return;
       e.preventDefault();
-      const offset = (nav?.offsetHeight || 0) + 12;
+      const offset = (header?.offsetHeight || 0) + 56;
       const top = target.getBoundingClientRect().top + window.scrollY - offset;
       window.scrollTo({ top, behavior: 'smooth' });
     });
   });
+
+  // GitHub-style "/" shortcut → jump to the amount field
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== '/') return;
+    const tag = document.activeElement?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    e.preventDefault();
+    const target = $('amountInput');
+    scrollToEl(target, { behavior: 'smooth', block: 'center' });
+    try { target?.focus({ preventScroll: true }); } catch { /* ignore */ }
+  });
+
+  // Active repo tab follows the section in view
+  const tabs = Array.from(document.querySelectorAll('.repo-tab'));
+  const sections = tabs
+    .map((tab) => document.querySelector(tab.getAttribute('href')))
+    .filter(Boolean);
+
+  if ('IntersectionObserver' in window && sections.length) {
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting) return;
+        tabs.forEach((tab) => {
+          tab.classList.toggle('is-active', tab.getAttribute('href') === `#${entry.target.id}`);
+        });
+      });
+    }, { rootMargin: '-30% 0px -60% 0px' });
+
+    sections.forEach((section) => observer.observe(section));
+  }
 }
 
 /* ================================================================
-   15. FAQ
+   11. FAQ
 ================================================================ */
 function initFAQ() {
   document.querySelectorAll('.faq-item').forEach((item) => {
@@ -774,94 +719,25 @@ function initFAQ() {
 }
 
 /* ================================================================
-   16. SCROLL REVEAL + COUNTERS
-================================================================ */
-function initScrollReveal() {
-  const items = document.querySelectorAll('.reveal');
-  if (!('IntersectionObserver' in window)) {
-    items.forEach((el) => el.classList.add('in'));
-    return;
-  }
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      entry.target.classList.add('in');
-      observer.unobserve(entry.target);
-    });
-  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
-
-  items.forEach((el) => observer.observe(el));
-}
-
-function initCounters() {
-  const counters = document.querySelectorAll('.stat-value[data-target]');
-  if (!counters.length) return;
-
-  const animate = (el) => {
-    const target = Number(el.dataset.target) || 0;
-    const suffix = el.dataset.suffix || '';
-    const duration = 1400;
-    const start = performance.now();
-
-    const step = (now) => {
-      const progress = Math.min((now - start) / duration, 1);
-      const eased = 1 - Math.pow(1 - progress, 3);
-      el.textContent = Math.round(target * eased).toLocaleString('en-US') + suffix;
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  };
-
-  if (!('IntersectionObserver' in window)) {
-    counters.forEach((el) => {
-      el.textContent = Number(el.dataset.target).toLocaleString('en-US') + (el.dataset.suffix || '');
-    });
-    return;
-  }
-
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (!entry.isIntersecting) return;
-      animate(entry.target);
-      observer.unobserve(entry.target);
-    });
-  }, { threshold: 0.5 });
-
-  counters.forEach((el) => observer.observe(el));
-}
-
-/* ================================================================
-   17. CONSOLE CARD — live charge preview in hero
-================================================================ */
-function initConsolePreview() {
-  const chargeEl = document.querySelector('.console-amount');
-  if (!chargeEl) return;
-  chargeEl.textContent = formatUSD(TIERS[2].priceUSD);
-  const ngnEl = document.querySelectorAll('.console-row .mono')[2];
-  if (ngnEl) ngnEl.textContent = formatNGNFromKobo(usdToKobo(TIERS[2].priceUSD));
-}
-
-/* ================================================================
-   18. INIT
+   12. INIT
 ================================================================ */
 function init() {
   console.log(`⚡ ${CONFIG.BRAND_NAME} — initializing`);
 
   initNavigation();
-  initTierSelection();
-  initRealTimeValidation();
-  initPromoCode();
-  initActionButtons();
+  initAmountInput();
+  initCurrencyToggle();
+  initEmailValidation();
+  initActions();
   initFAQ();
-  initScrollReveal();
-  initCounters();
-  initConsolePreview();
 
   const yearEl = $('footerYear');
   if (yearEl) yearEl.textContent = new Date().getFullYear();
 
-  selectTier(TIERS[2].id);
+  const rateEl = $('summaryRate');
+  if (rateEl) rateEl.textContent = `$1 = ₦${CONFIG.USD_TO_NGN_RATE.toLocaleString('en-US')}`;
+
+  updateAmountDisplay();
   showState('form');
 
   console.log(`🔑 Paystack: ${CONFIG.PAYSTACK_PUBLIC_KEY.startsWith('pk_live') ? 'LIVE' : 'TEST'}`);

@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Pay for GitHub development work — bug fixes, features and retainers. Secure checkout with instant receipt. Payments are processed by Paystack." />
-  <meta property="og:title" content="DevPay — Get paid for GitHub work" />
-  <meta property="og:description" content="Clean PRs, honest scopes, instant receipts. Pay for fixes, features and retainers." />
+  <meta name="description" content="Invoice page for GitHub development work. Enter any amount, pay securely by card, bank transfer, USSD or mobile money. Payments settle to a Paystack subaccount." />
+  <meta property="og:title" content="devpay/invoices — pay for GitHub work" />
+  <meta property="og:description" content="No fixed prices. Enter the amount you agreed, pay securely, get a receipt." />
   <meta property="og:type" content="website" />
-  <title>DevPay — Payments for GitHub Work</title>
+  <title>devpay / invoices — pay for GitHub work</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
 
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -27,1003 +27,752 @@
 <body>
 
   <!-- ============================================================
-       NAVIGATION
+       APP HEADER (GitHub chrome)
   ============================================================ -->
-  <nav class="navbar" id="navbar">
-    <div class="nav-inner">
-      <a href="#home" class="brand">
-        <div class="brand-mark"><i class="fas fa-code-branch"></i></div>
-        <span class="brand-name">Dev<span class="brand-accent">Pay</span></span>
-        <span class="brand-tag">// github work</span>
+  <header class="app-header" id="navbar">
+    <div class="app-header-inner">
+      <a href="#top" class="app-logo" aria-label="DevPay home">
+        <i class="fab fa-github"></i>
       </a>
 
-      <ul class="nav-links" id="navLinks">
-        <li><a href="#home" class="nav-link">Home</a></li>
-        <li><a href="#work" class="nav-link">Shipped work</a></li>
-        <li><a href="#rates" class="nav-link">Rates</a></li>
-        <li><a href="#services" class="nav-link">Services</a></li>
-        <li><a href="#faq" class="nav-link">FAQ</a></li>
-      </ul>
-
-      <div class="nav-actions">
-        <a href="#pay" class="btn btn-primary btn-sm">
-          <i class="fas fa-bolt"></i> Pay an invoice
-        </a>
-        <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
-          <span></span><span></span><span></span>
-        </button>
+      <div class="breadcrumb">
+        <a href="#top" class="crumb-owner">devpay</a>
+        <span class="crumb-sep">/</span>
+        <a href="#top" class="crumb-repo"><i class="fas fa-file-invoice-dollar"></i> invoices</a>
+        <span class="visibility-badge">Public</span>
       </div>
+
+      <div class="header-search" role="search">
+        <i class="fas fa-search"></i>
+        <span>Type <kbd>/</kbd> to search invoices</span>
+      </div>
+
+      <nav class="header-nav">
+        <a href="#work" class="header-nav-link">Invoices</a>
+        <a href="#services" class="header-nav-link">Scope</a>
+        <a href="#faq" class="header-nav-link">FAQ</a>
+      </nav>
+
+      <div class="header-actions">
+        <a href="#pay" class="btn btn-primary btn-sm">
+          <i class="fas fa-plus"></i> New payment
+        </a>
+        <div class="avatar avatar-user" title="lovelychloe">lc</div>
+      </div>
+
+      <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <i class="fas fa-bars"></i>
+      </button>
     </div>
 
     <div class="mobile-drawer" id="mobileDrawer">
-      <a href="#home">Home</a>
-      <a href="#work">Shipped work</a>
-      <a href="#rates">Rates</a>
-      <a href="#services">Services</a>
+      <a href="#pay">New payment</a>
+      <a href="#work">Invoices</a>
+      <a href="#services">Scope</a>
       <a href="#faq">FAQ</a>
-      <a href="#pay" class="drawer-cta"><i class="fas fa-bolt"></i> Pay an invoice</a>
-    </div>
-  </nav>
-
-  <!-- ============================================================
-       HERO
-  ============================================================ -->
-  <header class="hero" id="home">
-    <div class="hero-bg" aria-hidden="true">
-      <div class="orb orb-1"></div>
-      <div class="orb orb-2"></div>
-      <div class="hero-grid"></div>
-      <div class="hero-scan"></div>
-    </div>
-
-    <div class="container hero-container">
-      <div class="hero-copy">
-        <div class="pill reveal">
-          <span class="dot-live"></span>
-          Available for new work
-          <span class="pill-sep">·</span>
-          <span class="mono">avg. 4h reply</span>
-        </div>
-
-        <h1 class="hero-title reveal">
-          I ship the PR.<br />
-          <span class="gradient-text">You pay for the merge.</span>
-        </h1>
-
-        <p class="hero-subtitle reveal">
-          A simple, invoice-first payment page for developers I work with on GitHub.
-          Bug fixes, features, reviews and retainers — pay securely by card, bank
-          transfer, USSD or mobile money. You get a receipt, I get a merged commit.
-        </p>
-
-        <div class="hero-actions reveal">
-          <a href="#pay" class="btn btn-primary btn-lg">
-            <i class="fas fa-credit-card"></i> Pay for work
-          </a>
-          <a href="#work" class="btn btn-ghost btn-lg">
-            <i class="fab fa-github"></i> See shipped work
-          </a>
-        </div>
-
-        <div class="hero-trust reveal">
-          <div class="trust-item"><i class="fas fa-shield-halved"></i> Secured by Paystack</div>
-          <div class="trust-item"><i class="fas fa-lock"></i> No card data on this site</div>
-          <div class="trust-item"><i class="fas fa-receipt"></i> Instant receipt</div>
-        </div>
-      </div>
-
-      <!-- Payment console card -->
-      <div class="hero-visual reveal">
-        <div class="console-card">
-          <div class="console-bar">
-            <span class="console-dots"><i></i><i></i><i></i></span>
-            <span class="console-title mono">invoice.preview</span>
-            <span class="console-badge">LIVE</span>
-          </div>
-
-          <div class="console-body">
-            <div class="console-repo">
-              <i class="fab fa-github"></i>
-              <span class="mono">@lovelychloe<span class="dim">/</span>acme-api</span>
-              <span class="branch-chip"><i class="fas fa-code-branch"></i> main</span>
-            </div>
-
-            <div class="console-pr">
-              <div class="pr-line">
-                <span class="pr-num mono">#482</span>
-                <span class="pr-title">fix: race condition in webhook retries</span>
-              </div>
-              <div class="pr-tags">
-                <span class="tag tag-green"><i class="fas fa-check"></i> merged</span>
-                <span class="tag">+412 −118</span>
-                <span class="tag">tests ✓</span>
-              </div>
-            </div>
-
-            <div class="console-divider"></div>
-
-            <div class="console-row">
-              <span>Scope</span>
-              <span class="mono">Bug fix — 2 files</span>
-            </div>
-            <div class="console-row">
-              <span>Amount due</span>
-              <span class="mono console-amount">$25.00</span>
-            </div>
-            <div class="console-row">
-              <span>Charge (NGN)</span>
-              <span class="mono">₦40,000.00</span>
-            </div>
-            <div class="console-row">
-              <span>Settlement</span>
-              <span class="mono sub-line">ACCT_4i2l4tyiv5p48cu</span>
-            </div>
-
-            <div class="console-status">
-              <span class="status-led"></span>
-              <span class="mono">routed to subaccount · split configured</span>
-            </div>
-          </div>
-
-          <div class="console-foot mono">
-            <i class="fas fa-terminal"></i> paystack checkout · ready
-          </div>
-        </div>
-
-        <div class="floating-chip chip-1"><i class="fas fa-circle-check"></i> Receipt sent</div>
-        <div class="floating-chip chip-2"><i class="fas fa-shield-halved"></i> PCI-DSS</div>
-      </div>
-    </div>
-
-    <!-- Stats strip -->
-    <div class="container">
-      <div class="stats-strip reveal">
-        <div class="stat">
-          <span class="stat-value" data-target="214">0</span>
-          <span class="stat-label">PRs merged</span>
-        </div>
-        <div class="stat">
-          <span class="stat-value" data-target="37">0</span>
-          <span class="stat-label">Repos contributed</span>
-        </div>
-        <div class="stat">
-          <span class="stat-value" data-target="68">0</span>
-          <span class="stat-label">Devs paid me</span>
-        </div>
-        <div class="stat">
-          <span class="stat-value" data-target="100" data-suffix="%">0</span>
-          <span class="stat-label">Receipts delivered</span>
-        </div>
-      </div>
     </div>
   </header>
 
   <!-- ============================================================
-       SHIPPED WORK
+       REPO TABS
   ============================================================ -->
-  <section class="section" id="work">
-    <div class="container">
-      <div class="section-head">
-        <span class="eyebrow"><i class="fab fa-github"></i> Proof of work</span>
-        <h2 class="section-title">Recently <span class="gradient-text">shipped &amp; paid</span></h2>
-        <p class="section-sub">
-          Real scopes, real merges, real invoices. Every one of these was paid through
-          this page and settled to the same subaccount.
-        </p>
-      </div>
-
-      <div class="work-grid" id="workGrid">
-        <article class="work-card reveal">
-          <div class="work-top">
-            <span class="repo-name"><i class="fab fa-github"></i> acme-api</span>
-            <span class="tag tag-green"><i class="fas fa-check"></i> merged</span>
-          </div>
-          <h3>fix: race condition in webhook retries</h3>
-          <p class="work-desc">Idempotency keys + retry backoff. Added regression tests and a metrics counter for dead-lettered events.</p>
-          <div class="work-meta">
-            <span><i class="fas fa-code-branch"></i> #482</span>
-            <span class="lang"><i class="lang-dot lang-ts"></i> TypeScript</span>
-            <span><i class="fas fa-coins"></i> $25</span>
-          </div>
-          <div class="work-foot mono">merged 6 days ago · paid</div>
-        </article>
-
-        <article class="work-card reveal">
-          <div class="work-top">
-            <span class="repo-name"><i class="fab fa-github"></i> shipping-dashboard</span>
-            <span class="tag tag-green"><i class="fas fa-check"></i> merged</span>
-          </div>
-          <h3>feat: live tracking map with websocket updates</h3>
-          <p class="work-desc">Mapbox layer, reconnect logic and optimistic updates. Shipped behind a feature flag with a rollout plan.</p>
-          <div class="work-meta">
-            <span><i class="fas fa-code-branch"></i> #1190</span>
-            <span class="lang"><i class="lang-dot lang-js"></i> JavaScript</span>
-            <span><i class="fas fa-coins"></i> $60</span>
-          </div>
-          <div class="work-foot mono">merged 2 weeks ago · paid</div>
-        </article>
-
-        <article class="work-card reveal">
-          <div class="work-top">
-            <span class="repo-name"><i class="fab fa-github"></i> paystack-go</span>
-            <span class="tag tag-green"><i class="fas fa-check"></i> merged</span>
-          </div>
-          <h3>refactor: split payments + subaccount support</h3>
-          <p class="work-desc">Typed subaccount fields, transaction_charge and bearer handling, plus README examples and fixtures.</p>
-          <div class="work-meta">
-            <span><i class="fas fa-code-branch"></i> #77</span>
-            <span class="lang"><i class="lang-dot lang-go"></i> Go</span>
-            <span><i class="fas fa-coins"></i> $60</span>
-          </div>
-          <div class="work-foot mono">merged 3 weeks ago · paid</div>
-        </article>
-
-        <article class="work-card reveal">
-          <div class="work-top">
-            <span class="repo-name"><i class="fab fa-github"></i> internal-cli</span>
-            <span class="tag tag-green"><i class="fas fa-check"></i> merged</span>
-          </div>
-          <h3>chore: migrate CI to reusable workflows</h3>
-          <p class="work-desc">Cut pipeline time from 14m to 5m, added caching and matrix test runs across Node 20 and 22.</p>
-          <div class="work-meta">
-            <span><i class="fas fa-code-branch"></i> #301</span>
-            <span class="lang"><i class="lang-dot lang-yml"></i> YAML</span>
-            <span><i class="fas fa-coins"></i> $25</span>
-          </div>
-          <div class="work-foot mono">merged 4 weeks ago · paid</div>
-        </article>
-
-        <article class="work-card reveal">
-          <div class="work-top">
-            <span class="repo-name"><i class="fab fa-github"></i> mobile-wallet</span>
-            <span class="tag tag-green"><i class="fas fa-check"></i> merged</span>
-          </div>
-          <h3>fix: double-charge on failed 3DS callback</h3>
-          <p class="work-desc">Reference locking on the client and a server-side idempotency guard. Added a refund runbook for ops.</p>
-          <div class="work-meta">
-            <span><i class="fas fa-code-branch"></i> #664</span>
-            <span class="lang"><i class="lang-dot lang-kt"></i> Kotlin</span>
-            <span><i class="fas fa-coins"></i> $25</span>
-          </div>
-          <div class="work-foot mono">merged 5 weeks ago · paid</div>
-        </article>
-
-        <article class="work-card reveal">
-          <div class="work-top">
-            <span class="repo-name"><i class="fab fa-github"></i> docs-site</span>
-            <span class="tag tag-green"><i class="fas fa-check"></i> merged</span>
-          </div>
-          <h3>docs: complete API reference rewrite</h3>
-          <p class="work-desc">Restructured 40 pages, added runnable cURL examples and a search index. Reviewed by two maintainers.</p>
-          <div class="work-meta">
-            <span><i class="fas fa-code-branch"></i> #208</span>
-            <span class="lang"><i class="lang-dot lang-md"></i> MDX</span>
-            <span><i class="fas fa-coins"></i> $60</span>
-          </div>
-          <div class="work-foot mono">merged 6 weeks ago · paid</div>
-        </article>
-      </div>
-
-      <p class="work-note">
-        <i class="fas fa-circle-info"></i>
-        These are sample entries — edit the text in <code>index.html</code> to match your own merged PRs.
-      </p>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       RATES
-  ============================================================ -->
-  <section class="section section-alt" id="rates">
-    <div class="container">
-      <div class="section-head">
-        <span class="eyebrow"><i class="fas fa-tags"></i> Transparent rates</span>
-        <h2 class="section-title">Pick the scope <span class="gradient-text">you need</span></h2>
-        <p class="section-sub">
-          Prices are in USD for clarity. Paystack charges in NGN at the rate shown
-          in checkout — tax-free, no hidden markup, no per-seat nonsense.
-        </p>
-      </div>
-
-      <div class="rates-grid">
-        <!-- 1 -->
-        <div class="tier-card reveal" data-tier-card="1">
-          <div class="tier-head">
-            <div class="tier-icon"><i class="fas fa-bug"></i></div>
-            <h3 class="tier-name">Quick Fix</h3>
-            <p class="tier-tagline">One small, well-defined bug</p>
-          </div>
-          <div class="tier-price">
-            <span class="price-currency">$</span>
-            <span class="price-amount" data-price-display="10">10</span>
-            <span class="price-period">/ fix</span>
-          </div>
-          <div class="tier-ngn mono" data-ngn-display="10">≈ ₦16,000</div>
-          <ul class="tier-features">
-            <li><i class="fas fa-check"></i> One PR, under 50 lines</li>
-            <li><i class="fas fa-check"></i> Repro steps documented</li>
-            <li><i class="fas fa-check"></i> Regression test added</li>
-            <li><i class="fas fa-check"></i> 48h turnaround</li>
-          </ul>
-          <div class="tier-foot">
-            <button class="btn btn-tier" data-tier="1" data-price="10">
-              Pay $10 <i class="fas fa-arrow-right"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- 2 -->
-        <div class="tier-card reveal" data-tier-card="2">
-          <div class="tier-head">
-            <div class="tier-icon"><i class="fas fa-wrench"></i></div>
-            <h3 class="tier-name">Bug Fix</h3>
-            <p class="tier-tagline">Standard issue + tests</p>
-          </div>
-          <div class="tier-price">
-            <span class="price-currency">$</span>
-            <span class="price-amount" data-price-display="25">25</span>
-            <span class="price-period">/ fix</span>
-          </div>
-          <div class="tier-ngn mono" data-ngn-display="25">≈ ₦40,000</div>
-          <ul class="tier-features">
-            <li><i class="fas fa-check"></i> Up to 3 files / 150 lines</li>
-            <li><i class="fas fa-check"></i> Tests + CI green</li>
-            <li><i class="fas fa-check"></i> PR description &amp; changelog</li>
-            <li><i class="fas fa-check"></i> 24h turnaround</li>
-            <li><i class="fas fa-check"></i> 7 days of post-merge support</li>
-          </ul>
-          <div class="tier-foot">
-            <button class="btn btn-tier" data-tier="2" data-price="25">
-              Pay $25 <i class="fas fa-arrow-right"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- 3 -->
-        <div class="tier-card tier-featured reveal" data-tier-card="3">
-          <span class="tier-ribbon">Most common</span>
-          <div class="tier-head">
-            <div class="tier-icon"><i class="fas fa-rocket"></i></div>
-            <h3 class="tier-name">Feature PR</h3>
-            <p class="tier-tagline">Scoped feature, reviewed &amp; merged</p>
-          </div>
-          <div class="tier-price">
-            <span class="price-currency">$</span>
-            <span class="price-amount" data-price-display="60">60</span>
-            <span class="price-period">/ feature</span>
-          </div>
-          <div class="tier-ngn mono" data-ngn-display="60">≈ ₦96,000</div>
-          <ul class="tier-features">
-            <li><i class="fas fa-check"></i> Up to 5 working days of build</li>
-            <li><i class="fas fa-check"></i> Tests, docs &amp; migration notes</li>
-            <li><i class="fas fa-check"></i> One review round included</li>
-            <li><i class="fas fa-check"></i> Feature flag + rollback plan</li>
-            <li><i class="fas fa-check"></i> 14 days of post-merge support</li>
-          </ul>
-          <div class="tier-foot">
-            <button class="btn btn-tier btn-tier-featured" data-tier="3" data-price="60">
-              Pay $60 <i class="fas fa-arrow-right"></i>
-            </button>
-          </div>
-        </div>
-
-        <!-- 4 -->
-        <div class="tier-card reveal" data-tier-card="4">
-          <div class="tier-head">
-            <div class="tier-icon"><i class="fas fa-infinity"></i></div>
-            <h3 class="tier-name">Retainer</h3>
-            <p class="tier-tagline">Monthly, priority queue</p>
-          </div>
-          <div class="tier-price">
-            <span class="price-currency">$</span>
-            <span class="price-amount" data-price-display="200">200</span>
-            <span class="price-period">/ month</span>
-          </div>
-          <div class="tier-ngn mono" data-ngn-display="200">≈ ₦320,000</div>
-          <ul class="tier-features">
-            <li><i class="fas fa-check"></i> 20 hours / month on your repo</li>
-            <li><i class="fas fa-check"></i> Priority review &amp; async standups</li>
-            <li><i class="fas fa-check"></i> Weekly merged-PR summary</li>
-            <li><i class="fas fa-check"></i> On-call for production bugs</li>
-            <li><i class="fas fa-check"></i> Cancel or pause anytime</li>
-          </ul>
-          <div class="tier-foot">
-            <button class="btn btn-tier" data-tier="4" data-price="200">
-              Pay $200 <i class="fas fa-arrow-right"></i>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <div class="guarantee reveal">
-        <div class="guarantee-icon"><i class="fas fa-shield-halved"></i></div>
-        <div>
-          <strong>Not merged? Not charged.</strong>
-          <p>If a PR is rejected for reasons within my control, you get a full refund within 7 days — no arguments, no invoices to chase.</p>
-        </div>
+  <div class="repo-nav">
+    <div class="container repo-nav-inner">
+      <a href="#top" class="repo-tab">
+        <i class="fas fa-code"></i> Code
+      </a>
+      <a href="#pay" class="repo-tab is-active">
+        <i class="fas fa-file-invoice-dollar"></i> Invoices
+      </a>
+      <a href="#work" class="repo-tab">
+        <i class="fas fa-list-check"></i> Recent
+        <span class="counter">6</span>
+      </a>
+      <a href="#services" class="repo-tab">
+        <i class="fas fa-diagram-project"></i> Scope
+      </a>
+      <a href="#faq" class="repo-tab">
+        <i class="fas fa-circle-question"></i> FAQ
+      </a>
+      <div class="repo-nav-actions">
+        <span class="repo-stat"><i class="fas fa-star"></i> Star</span>
+        <span class="repo-stat"><i class="fas fa-code-fork"></i> Fork</span>
       </div>
     </div>
-  </section>
+  </div>
 
-  <!-- ============================================================
-       SERVICES
-  ============================================================ -->
-  <section class="section" id="services">
-    <div class="container">
-      <div class="section-head">
-        <span class="eyebrow"><i class="fas fa-layer-group"></i> What's included</span>
-        <h2 class="section-title">Every payment includes <span class="gradient-text">the boring parts</span></h2>
-        <p class="section-sub">
-          The stuff that actually keeps a repo healthy — tests, docs, review
-          responses and a clean history. No drive-by commits.
-        </p>
-      </div>
+  <main id="top">
 
-      <div class="features-grid">
-        <div class="feature-card reveal">
-          <div class="feature-icon"><i class="fas fa-code-pull-request"></i></div>
-          <h3>Clean, reviewable PRs</h3>
-          <p>Small diffs, conventional commits, linked issues and a description a maintainer can actually review.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon"><i class="fas fa-vial"></i></div>
-          <h3>Tests that run</h3>
-          <p>Unit tests for the fix and a regression test for the bug. CI must be green before you pay.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon"><i class="fas fa-book"></i></div>
-          <h3>Docs &amp; changelog</h3>
-          <p>README updates, inline comments where it matters, and an entry in your changelog.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon"><i class="fas fa-comments"></i></div>
-          <h3>Review responses</h3>
-          <p>I answer review comments for the agreed window — including after the invoice is settled.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon"><i class="fas fa-server"></i></div>
-          <h3>Deploy support</h3>
-          <p>Migration notes, env var changes and a rollback plan so releases don't become incidents.</p>
-        </div>
-        <div class="feature-card reveal">
-          <div class="feature-icon"><i class="fas fa-receipt"></i></div>
-          <h3>Instant invoices</h3>
-          <p>Every payment produces a reference you can drop into your expense tracker or share with your finance team.</p>
-        </div>
-      </div>
-    </div>
-  </section>
+    <!-- ============================================================
+         HERO + PAYMENT
+    ============================================================ -->
+    <section class="section hero-section" id="pay">
+      <div class="container hero-grid">
 
-  <!-- ============================================================
-       TESTIMONIALS
-  ============================================================ -->
-  <section class="section section-alt" id="testimonials">
-    <div class="container">
-      <div class="section-head">
-        <span class="eyebrow"><i class="fas fa-quote-left"></i> From the repos</span>
-        <h2 class="section-title">What <span class="gradient-text">teams say</span></h2>
-      </div>
-
-      <div class="quotes-grid">
-        <figure class="quote-card reveal">
-          <div class="quote-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-          <blockquote>"Took a flaky test suite from 40% failures to stable in one PR. Paying was a two-minute checkout and the receipt went straight to finance."</blockquote>
-          <figcaption>
-            <span class="quote-avatar">AK</span>
-            <span><strong>Adaeze K.</strong><small>CTO · fintech startup</small></span>
-          </figcaption>
-        </figure>
-
-        <figure class="quote-card reveal">
-          <div class="quote-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-          <blockquote>"We scope on Friday, the branch is open Monday and merged Tuesday. The PR descriptions are better than most of my team's."</blockquote>
-          <figcaption>
-            <span class="quote-avatar">TM</span>
-            <span><strong>Tunde M.</strong><small>Lead engineer · logistics</small></span>
-          </figcaption>
-        </figure>
-
-        <figure class="quote-card reveal">
-          <div class="quote-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
-          <blockquote>"No agency overhead, no vague hourly logs. Fixed scope, fixed price, receipt in my inbox. Exactly how contractor payments should work."</blockquote>
-          <figcaption>
-            <span class="quote-avatar">RS</span>
-            <span><strong>Rita S.</strong><small>Founder · dev tools</small></span>
-          </figcaption>
-        </figure>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       PAYMENT
-  ============================================================ -->
-  <section class="section pay-section" id="pay">
-    <div class="container">
-      <div class="section-head">
-        <span class="eyebrow"><i class="fas fa-lock"></i> Secure checkout</span>
-        <h2 class="section-title">Pay for the work, <span class="gradient-text">get the receipt</span></h2>
-        <p class="section-sub">
-          Pick the scope, add your email and GitHub handle, and pay. Your card is
-          handled entirely by Paystack — this page never sees it.
-        </p>
-      </div>
-
-      <div class="pay-layout">
-        <!-- Payment card -->
-        <div class="payment-card" id="paymentCard">
-          <div class="payment-head">
-            <div class="payment-title">
-              <i class="fas fa-bolt"></i>
-              <span>Payment checkout</span>
-            </div>
-            <div class="payment-badges">
-              <span class="mini-badge"><i class="fas fa-lock"></i> TLS</span>
-              <span class="mini-badge"><i class="fas fa-shield-halved"></i> Paystack</span>
+        <!-- Left: intro + payment form -->
+        <div class="hero-main">
+          <div class="issue-head">
+            <h1 class="issue-title">Payment for GitHub work <span class="issue-number">#new</span></h1>
+            <div class="issue-meta">
+              <span class="state-badge state-open"><i class="fas fa-circle-dot"></i> Open</span>
+              <span class="issue-meta-text">
+                <strong>lovelychloe</strong> wants to be paid · any amount · no fixed price
+              </span>
             </div>
           </div>
 
-          <!-- ── FORM STATE ─────────────────────────────────── -->
-          <div class="payment-body" id="formState">
-            <div class="form-block">
-              <label class="field-label">What are you paying for?</label>
-              <div class="tier-options" id="tierOptions">
-                <button type="button" class="tier-option" data-tier="1" data-price="10">
-                  <span class="opt-name">Quick Fix</span>
-                  <span class="opt-price">$10</span>
-                </button>
-                <button type="button" class="tier-option" data-tier="2" data-price="25">
-                  <span class="opt-name">Bug Fix</span>
-                  <span class="opt-price">$25</span>
-                </button>
-                <button type="button" class="tier-option is-active" data-tier="3" data-price="60">
-                  <span class="opt-name">Feature PR</span>
-                  <span class="opt-price">$60</span>
-                </button>
-                <button type="button" class="tier-option" data-tier="4" data-price="200">
-                  <span class="opt-name">Retainer</span>
-                  <span class="opt-price">$200</span>
-                </button>
-              </div>
-            </div>
+          <p class="hero-lede">
+            We agreed on the work in the issue. Now pay whatever amount we agreed —
+            you type it, you pay it. Card, bank transfer, USSD or mobile money through
+            Paystack. No tiers, no fixed price, no surprises.
+          </p>
 
-            <form id="paymentForm" novalidate autocomplete="on">
-              <div class="field">
-                <label for="buyerEmail">Email for the receipt <span class="req">*</span></label>
-                <div class="input-wrap">
-                  <i class="fas fa-envelope input-icon"></i>
-                  <input
-                    type="email"
-                    id="buyerEmail"
-                    name="email"
-                    placeholder="you@company.com"
-                    inputmode="email"
-                    autocomplete="email"
-                    required
-                  />
-                  <span class="input-valid-icon" id="emailValidIcon"></span>
+          <!-- ── PAYMENT CARD ─────────────────────────────── -->
+          <div class="box payment-box" id="paymentCard">
+            <div class="box-header">
+              <div class="box-header-main">
+                <div class="avatar avatar-user avatar-sm">lc</div>
+                <div>
+                  <div class="box-title">New payment <span class="label label-green">open</span></div>
+                  <div class="box-subtitle">Enter the amount we agreed on — you choose it</div>
                 </div>
-                <div class="field-error" id="emailError"></div>
               </div>
+              <div class="box-header-badges">
+                <span class="label"><i class="fas fa-lock"></i> Paystack</span>
+              </div>
+            </div>
 
-              <div class="field-row">
+            <!-- ── FORM STATE ── -->
+            <div class="box-body" id="formState">
+              <form id="paymentForm" novalidate autocomplete="on">
+
+                <!-- Amount -->
                 <div class="field">
-                  <label for="buyerName">Your name</label>
-                  <div class="input-wrap">
-                    <i class="fas fa-user input-icon"></i>
-                    <input
-                      type="text"
-                      id="buyerName"
-                      name="name"
-                      placeholder="Ada Lovelace"
-                      autocomplete="name"
-                    />
+                  <div class="field-label-row">
+                    <label for="amountInput" class="field-label">
+                      Amount <span class="req">*</span>
+                    </label>
+                    <div class="currency-toggle" role="group" aria-label="Currency">
+                      <button type="button" class="currency-btn is-active" data-currency="NGN">₦ NGN</button>
+                      <button type="button" class="currency-btn" data-currency="USD">$ USD</button>
+                    </div>
                   </div>
-                </div>
 
-                <div class="field">
-                  <label for="githubHandle">GitHub handle</label>
-                  <div class="input-wrap">
-                    <i class="fab fa-github input-icon"></i>
+                  <div class="amount-input-wrap" id="amountWrap">
+                    <span class="amount-prefix" id="amountPrefix">₦</span>
                     <input
                       type="text"
-                      id="githubHandle"
-                      name="github"
-                      placeholder="@yourhandle"
+                      id="amountInput"
+                      name="amount"
+                      class="amount-input"
+                      placeholder="0.00"
+                      inputmode="decimal"
                       autocomplete="off"
-                      spellcheck="false"
+                      aria-describedby="amountHelp amountError"
+                      required
                     />
                   </div>
+
+                  <div class="field-help" id="amountHelp">
+                    No fixed price — type any amount.
+                    <span id="amountConversion">Charged in Naira by Paystack.</span>
+                  </div>
+                  <div class="field-error" id="amountError"></div>
+                </div>
+
+                <div class="field-row">
+                  <div class="field">
+                    <label for="buyerEmail" class="field-label">
+                      Email for the receipt <span class="req">*</span>
+                    </label>
+                    <div class="input-wrap">
+                      <i class="fas fa-envelope input-icon"></i>
+                      <input
+                        type="email"
+                        id="buyerEmail"
+                        name="email"
+                        placeholder="you@company.com"
+                        inputmode="email"
+                        autocomplete="email"
+                        class="form-control"
+                        required
+                      />
+                      <span class="input-valid-icon" id="emailValidIcon"></span>
+                    </div>
+                    <div class="field-error" id="emailError"></div>
+                  </div>
+
+                  <div class="field">
+                    <label for="buyerName" class="field-label">Your name</label>
+                    <div class="input-wrap">
+                      <i class="fas fa-user input-icon"></i>
+                      <input
+                        type="text"
+                        id="buyerName"
+                        name="name"
+                        placeholder="Ada Lovelace"
+                        autocomplete="name"
+                        class="form-control"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field-row">
+                  <div class="field">
+                    <label for="githubHandle" class="field-label">Your GitHub handle</label>
+                    <div class="input-wrap">
+                      <i class="fab fa-github input-icon"></i>
+                      <input
+                        type="text"
+                        id="githubHandle"
+                        name="github"
+                        placeholder="@yourhandle"
+                        autocomplete="off"
+                        spellcheck="false"
+                        class="form-control"
+                      />
+                    </div>
+                  </div>
+
+                  <div class="field">
+                    <label for="workReference" class="field-label">
+                      PR / issue reference <span class="optional">optional</span>
+                    </label>
+                    <div class="input-wrap">
+                      <i class="fas fa-code-branch input-icon"></i>
+                      <input
+                        type="text"
+                        id="workReference"
+                        name="reference"
+                        placeholder="owner/repo#482"
+                        autocomplete="off"
+                        spellcheck="false"
+                        class="form-control"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="paymentNote" class="field-label">
+                    Note on the invoice <span class="optional">optional</span>
+                  </label>
+                  <textarea
+                    id="paymentNote"
+                    name="note"
+                    class="form-control form-textarea"
+                    rows="2"
+                    placeholder="What this payment covers — e.g. webhook retry fix, half up front"
+                  ></textarea>
+                </div>
+
+                <!-- Summary -->
+                <div class="summary-box" id="orderSummary">
+                  <div class="summary-row">
+                    <span>Amount</span>
+                    <span class="mono" id="summaryAmount">₦0.00</span>
+                  </div>
+                  <div class="summary-row summary-muted">
+                    <span>Paystack rate</span>
+                    <span class="mono" id="summaryRate">$1 = ₦1,600</span>
+                  </div>
+                  <div class="summary-row summary-muted" id="feeRow">
+                    <span>Paystack fee</span>
+                    <span class="mono">deducted at settlement</span>
+                  </div>
+                  <div class="summary-divider"></div>
+                  <div class="summary-row summary-total">
+                    <span>Charged now</span>
+                    <span class="mono" id="summaryTotal">₦0.00</span>
+                  </div>
+                  <div class="summary-row summary-muted summary-route">
+                    <span><i class="fas fa-arrow-right"></i> Settles to</span>
+                    <span class="mono">ACCT_4i2l4tyiv5p48cu</span>
+                  </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-pay" id="payBtn">
+                  <span class="btn-content" id="payBtnContent">
+                    <i class="fas fa-lock"></i>
+                    <span id="payBtnText">Enter an amount to continue</span>
+                  </span>
+                  <span class="btn-loader" id="payBtnLoader">
+                    <span class="spinner"></span>
+                    <span>Opening Paystack…</span>
+                  </span>
+                </button>
+
+                <p class="secure-note">
+                  <i class="fas fa-shield-halved"></i>
+                  Card details are entered inside Paystack's checkout — this page never sees them.
+                </p>
+
+                <div class="accepted-methods">
+                  <span class="method-label">Pay with</span>
+                  <span class="method"><i class="fas fa-credit-card"></i> Card</span>
+                  <span class="method"><i class="fas fa-building-columns"></i> Bank</span>
+                  <span class="method"><i class="fas fa-money-bill-transfer"></i> Transfer</span>
+                  <span class="method"><i class="fas fa-hashtag"></i> USSD</span>
+                  <span class="method"><i class="fas fa-mobile-screen"></i> Mobile money</span>
+                </div>
+              </form>
+            </div>
+
+            <!-- ── SUCCESS ── -->
+            <div class="box-body state-panel" id="successState" style="display:none">
+              <div class="state-head">
+                <span class="state-badge state-merged"><i class="fas fa-check"></i> Paid</span>
+                <h3 class="state-title">Payment received</h3>
+                <p class="state-subtitle">
+                  Paystack confirmed the charge. Your receipt is on its way to
+                  <strong id="successEmailInline">—</strong>. Keep the reference below for your finance team.
+                </p>
+              </div>
+
+              <div class="receipt">
+                <div class="receipt-row">
+                  <span>Reference</span>
+                  <span class="mono" id="successRef">—</span>
+                </div>
+                <div class="receipt-row">
+                  <span>Amount</span>
+                  <span class="mono" id="successAmount">—</span>
+                </div>
+                <div class="receipt-row">
+                  <span>Charged</span>
+                  <span class="mono" id="successCharge">—</span>
+                </div>
+                <div class="receipt-row">
+                  <span>Email</span>
+                  <span id="successEmail">—</span>
+                </div>
+                <div class="receipt-row">
+                  <span>GitHub</span>
+                  <span class="mono" id="successGithub">—</span>
+                </div>
+                <div class="receipt-row">
+                  <span>PR / issue</span>
+                  <span class="mono" id="successWorkRef">—</span>
+                </div>
+                <div class="receipt-row">
+                  <span>Note</span>
+                  <span id="successNote">—</span>
+                </div>
+                <div class="receipt-row">
+                  <span>Routed to</span>
+                  <span class="mono accent-text">ACCT_4i2l4tyiv5p48cu</span>
                 </div>
               </div>
 
-              <div class="field">
-                <label for="workReference">PR / issue or invoice note <span class="optional">optional</span></label>
-                <div class="input-wrap">
-                  <i class="fas fa-code-branch input-icon"></i>
-                  <input
-                    type="text"
-                    id="workReference"
-                    name="reference"
-                    placeholder="owner/repo#482 or INV-0142"
-                    autocomplete="off"
-                    spellcheck="false"
-                  />
-                </div>
+              <div class="state-actions">
+                <button class="btn btn-primary" id="printReceiptBtn">
+                  <i class="fas fa-print"></i> Print receipt
+                </button>
+                <button class="btn" id="copyRefBtn">
+                  <i class="fas fa-copy"></i> Copy reference
+                </button>
+                <button class="btn btn-link" id="buyAgainBtn">
+                  <i class="fas fa-rotate-left"></i> Make another payment
+                </button>
               </div>
+            </div>
 
-              <!-- Order summary -->
-              <div class="order-summary" id="orderSummary">
-                <div class="summary-row">
-                  <span id="summaryTierName">Feature PR</span>
-                  <span id="summaryPrice" class="mono">$60.00</span>
-                </div>
-                <div class="summary-row summary-muted">
-                  <span>Exchange rate</span>
-                  <span class="mono" id="summaryRate">$1 = ₦1,600</span>
-                </div>
-                <div class="summary-row discount-row" id="discountRow" style="display:none">
-                  <span>Discount <span class="mono" id="summaryPromoLabel"></span></span>
-                  <span id="discountAmount" class="discount-value mono">-$0.00</span>
-                </div>
-                <div class="summary-divider"></div>
-                <div class="summary-row summary-total">
-                  <span>You pay</span>
-                  <span class="mono" id="summaryTotal">$60.00</span>
-                </div>
-                <div class="summary-row summary-charge">
-                  <span>Charged as</span>
-                  <span class="mono" id="summaryCharge">₦96,000.00</span>
-                </div>
+            <!-- ── FAILED ── -->
+            <div class="box-body state-panel" id="failedState" style="display:none">
+              <div class="state-head">
+                <span class="state-badge state-closed"><i class="fas fa-circle-xmark"></i> Not completed</span>
+                <h3 class="state-title">Payment didn't go through</h3>
+                <p class="state-subtitle" id="failedMessage">
+                  No money left your account. You can retry with the same amount.
+                </p>
               </div>
-
-              <button type="button" class="promo-toggle" id="promoToggle" aria-expanded="false">
-                <i class="fas fa-tag"></i> Have a promo code?
-                <i class="fas fa-chevron-down promo-chevron"></i>
-              </button>
-
-              <div class="promo-input-wrap" id="promoInputWrap" style="display:none">
-                <div class="promo-row">
-                  <input
-                    type="text"
-                    id="promoCode"
-                    placeholder="ENTER CODE"
-                    autocomplete="off"
-                    spellcheck="false"
-                  />
-                  <button type="button" class="btn btn-sm btn-apply" id="applyPromo">Apply</button>
-                </div>
-                <div class="promo-result" id="promoResult"></div>
+              <div class="state-actions">
+                <button class="btn btn-primary" id="retryBtn">
+                  <i class="fas fa-rotate-right"></i> Try again
+                </button>
+                <button class="btn" id="changeAmountBtn">
+                  <i class="fas fa-pen"></i> Change amount
+                </button>
               </div>
-
-              <button type="submit" class="btn btn-pay" id="payBtn">
-                <div class="btn-content" id="payBtnContent">
-                  <i class="fas fa-lock"></i>
-                  <span id="payBtnText">Pay $60.00 — Secure checkout</span>
-                </div>
-                <div class="btn-loader" id="payBtnLoader" style="display:none">
-                  <span class="spinner"></span>
-                  <span>Opening Paystack…</span>
-                </div>
-              </button>
-
-              <p class="secure-note">
-                <i class="fas fa-shield-halved"></i>
-                You'll be charged in Nigerian Naira by Paystack. Card details never touch this site.
-              </p>
-
-              <div class="accepted-methods">
-                <span class="method"><i class="fas fa-credit-card"></i> Card</span>
-                <span class="method"><i class="fas fa-building-columns"></i> Bank</span>
-                <span class="method"><i class="fas fa-money-bill-transfer"></i> Transfer</span>
-                <span class="method"><i class="fas fa-hashtag"></i> USSD</span>
-                <span class="method"><i class="fas fa-mobile-screen"></i> Mobile money</span>
-              </div>
-            </form>
+            </div>
           </div>
 
-          <!-- ── SUCCESS STATE ──────────────────────────────── -->
-          <div class="payment-body state-panel" id="successState" style="display:none">
-            <div class="success-check">
-              <svg viewBox="0 0 52 52" aria-hidden="true">
-                <circle cx="26" cy="26" r="24" fill="none" />
-                <path fill="none" d="M14 27l8 8 16-17" />
-              </svg>
-            </div>
-            <h3 class="state-title success-title">Payment confirmed</h3>
-            <p class="state-subtitle">
-              Thank you — your payment was processed by Paystack. A receipt is on its
-              way to your inbox, and the work is officially commissioned.
-            </p>
-
-            <div class="receipt">
-              <div class="receipt-row">
-                <span>Reference</span>
-                <span class="detail-value mono" id="successRef">—</span>
-              </div>
-              <div class="receipt-row">
-                <span>Paid for</span>
-                <span class="detail-value" id="successTier">—</span>
-              </div>
-              <div class="receipt-row">
-                <span>Amount</span>
-                <span class="detail-value mono" id="successAmount">—</span>
-              </div>
-              <div class="receipt-row">
-                <span>Charged</span>
-                <span class="detail-value mono" id="successCharge">—</span>
-              </div>
-              <div class="receipt-row">
-                <span>Email</span>
-                <span class="detail-value" id="successEmail">—</span>
-              </div>
-              <div class="receipt-row">
-                <span>GitHub</span>
-                <span class="detail-value mono" id="successGithub">—</span>
-              </div>
-              <div class="receipt-row">
-                <span>Routed to</span>
-                <span class="detail-value mono sub-line">ACCT_4i2l4tyiv5p48cu</span>
-              </div>
-            </div>
-
-            <div class="state-actions">
-              <button class="btn btn-primary" id="printReceiptBtn">
-                <i class="fas fa-print"></i> Print receipt
-              </button>
-              <button class="btn btn-outline" id="copyRefBtn">
-                <i class="fas fa-copy"></i> Copy reference
-              </button>
-            </div>
-
-            <button class="btn btn-link" id="buyAgainBtn">
-              <i class="fas fa-rotate-left"></i> Make another payment
-            </button>
-          </div>
-
-          <!-- ── FAILED STATE ───────────────────────────────── -->
-          <div class="payment-body state-panel" id="failedState" style="display:none">
-            <div class="state-icon failed-icon"><i class="fas fa-circle-exclamation"></i></div>
-            <h3 class="state-title failed-title">Payment didn't go through</h3>
-            <p class="state-subtitle" id="failedMessage">
-              Something interrupted the charge. No money left your account — you can retry.
-            </p>
-            <div class="state-actions">
-              <button class="btn btn-pay" id="retryBtn">
-                <i class="fas fa-rotate-right"></i> Try again
-              </button>
-              <button class="btn btn-outline" id="changeTierBtn">
-                <i class="fas fa-sliders"></i> Change scope
-              </button>
-            </div>
+          <!-- Discussion-style footer note -->
+          <div class="discussion-note">
+            <i class="fas fa-circle-info"></i>
+            Payments are processed by Paystack in Nigerian Naira. The amount you type is
+            the amount charged — this page adds nothing on top.
           </div>
         </div>
 
-        <!-- Side column -->
-        <aside class="pay-side">
-          <div class="side-card">
-            <div class="side-card-head">
-              <i class="fas fa-file-invoice-dollar"></i>
-              <span>Invoice summary</span>
+        <!-- Right: sidebar -->
+        <aside class="hero-side">
+          <div class="side-box">
+            <div class="side-box-header">Invoice details</div>
+
+            <div class="side-box-section">
+              <div class="side-label">Status</div>
+              <span class="state-badge state-open"><i class="fas fa-circle-dot"></i> Awaiting payment</span>
             </div>
-            <div id="tierPreviewContent">
-              <div class="preview-name" id="previewName">Feature PR</div>
-              <div class="preview-price mono" id="previewPrice">$60.00</div>
-              <div class="preview-ngn mono" id="previewNgn">≈ ₦96,000</div>
-              <ul class="preview-features" id="previewFeatures"></ul>
-              <div class="preview-meta">
-                <span><i class="fas fa-clock"></i> <span id="previewTurnaround">5 working days</span></span>
+
+            <div class="side-box-section">
+              <div class="side-label">Amount</div>
+              <div class="side-value">Set by payer</div>
+              <div class="side-help">No fixed price — enter any amount at checkout.</div>
+            </div>
+
+            <div class="side-box-section">
+              <div class="side-label">Labels</div>
+              <div class="label-row">
+                <span class="label label-green">paid on merge</span>
+                <span class="label label-blue">github work</span>
+                <span class="label label-purple">custom amount</span>
+                <span class="label label-orange">invoice</span>
+              </div>
+            </div>
+
+            <div class="side-box-section">
+              <div class="side-label">Settlement</div>
+              <div class="subaccount-row mono">
+                <i class="fas fa-building-columns"></i>
+                <span>ACCT_4i2l4tyiv5p48cu</span>
+              </div>
+              <div class="side-help">Subaccount routing configured in <code>js/app.js</code>.</div>
+            </div>
+
+            <div class="side-box-section">
+              <div class="side-label">Recipient</div>
+              <div class="assignee">
+                <div class="avatar avatar-user avatar-sm">lc</div>
+                <div>
+                  <div class="assignee-name">lovelychloe</div>
+                  <div class="side-help">@yourhandle</div>
+                </div>
               </div>
             </div>
           </div>
 
-          <div class="side-card side-card-accent">
-            <div class="side-card-head">
-              <i class="fas fa-shield-halved"></i>
-              <span>How payment flows</span>
+          <div class="side-box">
+            <div class="side-box-header">Checkout request</div>
+            <pre class="code-block"><code><span class="tok-fn">transaction</span>.<span class="tok-fn">initialize</span>({
+  email,
+  amount: <span class="tok-num">PAYER_AMOUNT</span>,
+  currency: <span class="tok-str">'NGN'</span>,
+  subaccount: <span class="tok-str">'ACCT_4i2l4tyiv5p48cu'</span>,
+  bearer: <span class="tok-str">'account'</span>,
+});</code></pre>
+            <div class="side-box-footer">
+              <i class="fas fa-lock"></i> Public key only · no secrets here
             </div>
-            <ol class="flow-list">
-              <li><span>You pay on Paystack checkout</span></li>
-              <li><span>Funds settle to the configured subaccount</span></li>
-              <li><span>You get a receipt + reference instantly</span></li>
-            </ol>
-            <div class="subaccount-box mono">
-              <span class="subaccount-label">SUBACCOUNT</span>
-              <span class="subaccount-code">ACCT_4i2l4tyiv5p48cu</span>
-            </div>
-            <p class="side-note">
-              Split routing and who bears the Paystack fee are configured on this
-              account — see <code>README.md</code>.
-            </p>
           </div>
 
-          <div class="side-card">
-            <div class="side-card-head">
-              <i class="fas fa-circle-question"></i>
-              <span>Need a custom invoice?</span>
+          <div class="side-box">
+            <div class="side-box-header">Need something else?</div>
+            <div class="side-box-body">
+              <p class="side-help">
+                Want a PDF invoice or Net-30 terms first? Ask before paying so we don't
+                double-charge.
+              </p>
+              <a class="btn btn-block" href="mailto:hello@example.com?subject=Invoice%20question">
+                <i class="fas fa-envelope"></i> Email me
+              </a>
             </div>
-            <p class="side-note">
-              Larger scope, multiple PRs or a monthly retainer? Email the exact
-              amount you've agreed and I'll send a matching payment link.
-            </p>
-            <a class="btn btn-outline btn-block" href="mailto:hello@example.com?subject=Custom%20invoice%20for%20GitHub%20work">
-              <i class="fas fa-envelope"></i> Email me
-            </a>
           </div>
         </aside>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ============================================================
-       FAQ
-  ============================================================ -->
-  <section class="section section-alt" id="faq">
-    <div class="container">
-      <div class="section-head">
-        <span class="eyebrow"><i class="fas fa-circle-question"></i> Questions</span>
-        <h2 class="section-title">Before you <span class="gradient-text">hit pay</span></h2>
-      </div>
-
-      <div class="faq-list" id="faqList">
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">
-            <span>When do I pay — before or after the PR?</span>
-            <i class="fas fa-plus"></i>
-          </button>
-          <div class="faq-a">
-            <p>
-              For small fixes, payment after merge is fine: pay this invoice as soon as
-              the PR lands. For features and retainers, half up front and half on merge is
-              the default. We'll agree in the issue before any code is written.
-            </p>
-          </div>
+    <!-- ============================================================
+         RECENT INVOICES
+    ============================================================ -->
+    <section class="section" id="work">
+      <div class="container">
+        <div class="section-head">
+          <h2 class="section-title">Recent invoices</h2>
+          <p class="section-sub">
+            Every amount below was typed by the person paying — no fixed pricing.
+            All of them settled to the same subaccount.
+          </p>
         </div>
 
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">
-            <span>What currencies can I pay in?</span>
-            <i class="fas fa-plus"></i>
-          </button>
-          <div class="faq-a">
-            <p>
-              The page quotes in USD for clarity, but Paystack charges in Nigerian Naira
-              at the rate shown in the summary. Cards, bank transfer, USSD and mobile
-              money are all accepted. International cards are supported and converted
-              by Paystack.
-            </p>
+        <div class="box table-box">
+          <div class="table-head">
+            <div class="th th-status">Status</div>
+            <div class="th th-ref">Reference / PR</div>
+            <div class="th th-payer">Payer</div>
+            <div class="th th-amount">Amount</div>
+            <div class="th th-date">Paid</div>
           </div>
-        </div>
 
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">
-            <span>Will I get an invoice for my finance team?</span>
-            <i class="fas fa-plus"></i>
-          </button>
-          <div class="faq-a">
-            <p>
-              Yes. Enter the billing email in checkout and Paystack emails a receipt
-              immediately. The success screen also gives you a printable receipt with
-              the transaction reference — that's what most finance teams ask for.
-            </p>
+          <div class="invoice-row">
+            <div class="td th-status"><span class="state-badge state-merged"><i class="fas fa-check"></i> Paid</span></div>
+            <div class="td th-ref">
+              <div class="ref-title">fix: race condition in webhook retries</div>
+              <div class="ref-meta mono">acme-api · #482</div>
+            </div>
+            <div class="td th-payer">
+              <div class="payer"><div class="avatar avatar-sm">ak</div> Adaeze K.</div>
+            </div>
+            <div class="td th-amount mono amount-cell">₦40,000.00</div>
+            <div class="td th-date mono">6 days ago</div>
           </div>
-        </div>
 
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">
-            <span>Who holds my card details?</span>
-            <i class="fas fa-plus"></i>
-          </button>
-          <div class="faq-a">
-            <p>
-              Paystack does — the checkout runs inside Paystack's PCI-DSS compliant
-              iframe. This website only passes your email and the amount; no card data
-              is stored or transmitted by this page.
-            </p>
+          <div class="invoice-row">
+            <div class="td th-status"><span class="state-badge state-merged"><i class="fas fa-check"></i> Paid</span></div>
+            <div class="td th-ref">
+              <div class="ref-title">feat: live tracking map with websocket updates</div>
+              <div class="ref-meta mono">shipping-dashboard · #1190</div>
+            </div>
+            <div class="td th-payer">
+              <div class="payer"><div class="avatar avatar-sm">tm</div> Tunde M.</div>
+            </div>
+            <div class="td th-amount mono amount-cell">₦96,000.00</div>
+            <div class="td th-date mono">2 weeks ago</div>
           </div>
-        </div>
 
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">
-            <span>What if the work isn't merged?</span>
-            <i class="fas fa-plus"></i>
-          </button>
-          <div class="faq-a">
-            <p>
-              If a PR is rejected for reasons within my control, you're refunded in full
-              within 7 days of the request. If the scope changes mid-way, we re-scope in
-              writing before any extra charge.
-            </p>
+          <div class="invoice-row">
+            <div class="td th-status"><span class="state-badge state-merged"><i class="fas fa-check"></i> Paid</span></div>
+            <div class="td th-ref">
+              <div class="ref-title">refactor: split payments + subaccount support</div>
+              <div class="ref-meta mono">paystack-go · #77</div>
+            </div>
+            <div class="td th-payer">
+              <div class="payer"><div class="avatar avatar-sm">rs</div> Rita S.</div>
+            </div>
+            <div class="td th-amount mono amount-cell">₦150,000.00</div>
+            <div class="td th-date mono">3 weeks ago</div>
           </div>
-        </div>
 
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">
-            <span>Can you sign an NDA or work under my contract?</span>
-            <i class="fas fa-plus"></i>
-          </button>
-          <div class="faq-a">
-            <p>
-              Usually yes. Send the document before payment and I'll confirm in writing.
-              Net-30 invoicing is available for established clients — ask before paying
-              here so we don't double charge.
-            </p>
+          <div class="invoice-row">
+            <div class="td th-status"><span class="state-badge state-merged"><i class="fas fa-check"></i> Paid</span></div>
+            <div class="td th-ref">
+              <div class="ref-title">chore: migrate CI to reusable workflows</div>
+              <div class="ref-meta mono">internal-cli · #301</div>
+            </div>
+            <div class="td th-payer">
+              <div class="payer"><div class="avatar avatar-sm">ib</div> Ibrahim B.</div>
+            </div>
+            <div class="td th-amount mono amount-cell">₦22,500.00</div>
+            <div class="td th-date mono">4 weeks ago</div>
+          </div>
+
+          <div class="invoice-row">
+            <div class="td th-status"><span class="state-badge state-merged"><i class="fas fa-check"></i> Paid</span></div>
+            <div class="td th-ref">
+              <div class="ref-title">fix: double-charge on failed 3DS callback</div>
+              <div class="ref-meta mono">mobile-wallet · #664</div>
+            </div>
+            <div class="td th-payer">
+              <div class="payer"><div class="avatar avatar-sm">cn</div> Chidi N.</div>
+            </div>
+            <div class="td th-amount mono amount-cell">₦55,000.00</div>
+            <div class="td th-date mono">5 weeks ago</div>
+          </div>
+
+          <div class="table-footer">
+            <i class="fas fa-lightbulb"></i>
+            Sample rows — swap them for your own invoices in <code>index.html</code>.
           </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <!-- ============================================================
-       FINAL CTA
-  ============================================================ -->
-  <section class="final-cta">
-    <div class="container">
-      <div class="cta-card">
-        <div class="cta-glow" aria-hidden="true"></div>
-        <span class="pill pill-dark"><i class="fas fa-terminal"></i> ready when you are</span>
-        <h2>Got a repo that needs shipping?</h2>
-        <p>Open an issue, tag me, or just pay the scope you need. Most fixes are merged within 48 hours.</p>
-        <div class="cta-actions">
-          <a href="#pay" class="btn btn-primary btn-lg"><i class="fas fa-bolt"></i> Pay an invoice</a>
-          <a href="#rates" class="btn btn-ghost btn-lg"><i class="fas fa-tags"></i> Review rates</a>
+    <!-- ============================================================
+         WHAT YOU'RE PAYING FOR
+    ============================================================ -->
+    <section class="section" id="services">
+      <div class="container">
+        <div class="section-head">
+          <h2 class="section-title">What you're paying for</h2>
+          <p class="section-sub">
+            The amount is yours to decide. This is what comes with it by default.
+          </p>
+        </div>
+
+        <div class="grid-2">
+          <div class="box list-box">
+            <div class="list-box-header"><i class="fas fa-code-pull-request"></i> The work itself</div>
+            <ul class="check-list">
+              <li><i class="fas fa-check"></i> Clean, reviewable PR — small diff, linked issue, clear description</li>
+              <li><i class="fas fa-check"></i> Tests added, CI green before merge</li>
+              <li><i class="fas fa-check"></i> Docs, changelog and migration notes where relevant</li>
+              <li><i class="fas fa-check"></i> I respond to review comments after you've paid</li>
+            </ul>
+          </div>
+
+          <div class="box list-box">
+            <div class="list-box-header"><i class="fas fa-file-invoice-dollar"></i> The paperwork</div>
+            <ul class="check-list">
+              <li><i class="fas fa-check"></i> Paystack receipt emailed to you instantly</li>
+              <li><i class="fas fa-check"></i> Printable receipt with the transaction reference</li>
+              <li><i class="fas fa-check"></i> Reference includes your GitHub handle and PR link</li>
+              <li><i class="fas fa-check"></i> Full refund if the PR is rejected for reasons in my control</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="steps-grid">
+          <div class="step">
+            <span class="step-num mono">01</span>
+            <h3>Agree the amount</h3>
+            <p>We settle it in the issue or on chat. There's no rate card here — whatever number we agreed.</p>
+          </div>
+          <div class="step">
+            <span class="step-num mono">02</span>
+            <h3>Type it in</h3>
+            <p>Enter that amount on this page in Naira or USD, add your email and GitHub handle.</p>
+          </div>
+          <div class="step">
+            <span class="step-num mono">03</span>
+            <h3>Pay &amp; keep the receipt</h3>
+            <p>Paystack handles the charge and routes it to the subaccount. You get a reference for your records.</p>
+          </div>
         </div>
       </div>
-    </div>
-  </section>
+    </section>
+
+    <!-- ============================================================
+         FAQ
+    ============================================================ -->
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-head">
+          <h2 class="section-title">FAQ</h2>
+          <p class="section-sub">Everything about paying a custom amount.</p>
+        </div>
+
+        <div class="box faq-box">
+          <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">
+              <span><i class="fas fa-circle-question"></i> Why is there no fixed price?</span>
+              <i class="fas fa-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-a">
+              <p>
+                Because every job is different. A one-line fix and a two-week feature
+                shouldn't share a price list. We agree on a number in the issue, and you
+                enter that exact amount here. If you're unsure, ask me first — I'll quote
+                in writing before you pay.
+              </p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">
+              <span><i class="fas fa-circle-question"></i> What's the minimum I can pay?</span>
+              <i class="fas fa-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-a">
+              <p>
+                ₦100 (about $0.06) — that's Paystack's floor. There's no maximum, but
+                for anything above ₦1,000,000 let's talk first so the settlement and
+                receipt details are right.
+              </p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">
+              <span><i class="fas fa-circle-question"></i> Can I pay in USD?</span>
+              <i class="fas fa-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-a">
+              <p>
+                You can type the amount in USD and the page converts it at the rate shown
+                in the summary. Paystack still charges in Nigerian Naira — international
+                cards are supported and converted automatically.
+              </p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">
+              <span><i class="fas fa-circle-question"></i> Are Paystack fees added on top?</span>
+              <i class="fas fa-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-a">
+              <p>
+                No. The amount you type is the amount charged. Paystack deducts its
+                transaction fee from the settlement, so what lands in the subaccount is
+                slightly less than what you paid — the same as any card payment.
+              </p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">
+              <span><i class="fas fa-circle-question"></i> Who sees my card details?</span>
+              <i class="fas fa-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-a">
+              <p>
+                Paystack only. The checkout runs inside Paystack's PCI-DSS compliant
+                iframe; this page sends your email and the amount, never card data.
+              </p>
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <button class="faq-q" aria-expanded="false">
+              <span><i class="fas fa-circle-question"></i> What if the work isn't merged?</span>
+              <i class="fas fa-chevron-down faq-chevron"></i>
+            </button>
+            <div class="faq-a">
+              <p>
+                If a PR is rejected for reasons within my control, you get a full refund
+                within 7 days of asking. If the scope grows mid-way, we re-agree the
+                amount in writing before any extra payment.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================
+         CTA
+    ============================================================ -->
+    <section class="section cta-section">
+      <div class="container">
+        <div class="box cta-box">
+          <h2>Ready to pay?</h2>
+          <p>Enter the amount we agreed on. Takes about a minute.</p>
+          <div class="cta-actions">
+            <a href="#pay" class="btn btn-primary"><i class="fas fa-arrow-up"></i> Go to checkout</a>
+            <a href="mailto:hello@example.com?subject=Invoice%20question" class="btn"><i class="fas fa-envelope"></i> Ask a question</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
 
   <!-- ============================================================
        FOOTER
   ============================================================ -->
-  <footer class="footer">
-    <div class="container footer-inner">
+  <footer class="app-footer">
+    <div class="container footer-top">
       <div class="footer-brand">
-        <div class="brand">
-          <div class="brand-mark"><i class="fas fa-code-branch"></i></div>
-          <span class="brand-name">Dev<span class="brand-accent">Pay</span></span>
-        </div>
-        <p>Payments for GitHub work. Clean PRs, fixed scopes, instant receipts.</p>
-        <div class="footer-socials">
-          <a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><i class="fab fa-github"></i></a>
-          <a href="mailto:hello@example.com" aria-label="Email"><i class="fas fa-envelope"></i></a>
-          <a href="#faq" aria-label="FAQ"><i class="fas fa-circle-question"></i></a>
-        </div>
+        <i class="fab fa-github"></i>
+        <span>© <span id="footerYear"></span> DevPay</span>
       </div>
-
-      <div class="footer-col">
-        <h4>Page</h4>
-        <a href="#work">Shipped work</a>
-        <a href="#rates">Rates</a>
-        <a href="#services">Services</a>
-        <a href="#pay">Checkout</a>
+      <div class="footer-links">
+        <a href="#work">Invoices</a>
+        <a href="#services">Scope</a>
+        <a href="#faq">FAQ</a>
+        <a href="mailto:hello@example.com">Contact</a>
+        <a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>
       </div>
-
-      <div class="footer-col">
-        <h4>Payments</h4>
-        <a href="#faq">Refund policy</a>
-        <a href="#faq">Invoices &amp; receipts</a>
-        <a href="#faq">Split routing</a>
-        <span class="footer-mono mono">ACCT_4i2l4tyiv5p48cu</span>
+      <div class="footer-secure">
+        <i class="fas fa-lock"></i> Payments by Paystack
       </div>
-
-      <div class="footer-col">
-        <h4>Contact</h4>
-        <a href="mailto:hello@example.com">hello@example.com</a>
-        <a href="https://github.com" target="_blank" rel="noopener noreferrer">@yourhandle</a>
-        <span class="footer-mono mono">UTC+1 · WAT</span>
-      </div>
-    </div>
-
-    <div class="container footer-bottom">
-      <p>&copy; <span id="footerYear"></span> DevPay. All rights reserved.</p>
-      <p class="footer-secure"><i class="fas fa-lock"></i> Payments processed securely by Paystack</p>
     </div>
   </footer>
 
   <!-- Toasts -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- Scripts -->
   <script src="js/app.js"></script>
 </body>
 </html>
