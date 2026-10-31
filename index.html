@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="Exclusive premium content. Subscribe now for instant access to photos, videos, and behind-the-scenes content." />
-  <meta property="og:title" content="Premium Content — Exclusive Access" />
-  <meta property="og:description" content="Unlock exclusive content with instant access. Choose your tier." />
+  <meta name="description" content="Pay for GitHub development work — bug fixes, features and retainers. Secure checkout with instant receipt. Payments are processed by Paystack." />
+  <meta property="og:title" content="DevPay — Get paid for GitHub work" />
+  <meta property="og:description" content="Clean PRs, honest scopes, instant receipts. Pay for fixes, features and retainers." />
   <meta property="og:type" content="website" />
-  <title>FanVault — Exclusive Premium Content</title>
+  <title>DevPay — Payments for GitHub Work</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Syne:wght@700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
 
   <!-- Font Awesome -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
@@ -20,7 +20,7 @@
   <!-- Stylesheet -->
   <link rel="stylesheet" href="css/style.css" />
 
-  <!-- Paystack -->
+  <!-- Paystack Inline -->
   <script src="https://js.paystack.co/v2/inline.js"></script>
 </head>
 
@@ -30,662 +30,465 @@
        NAVIGATION
   ============================================================ -->
   <nav class="navbar" id="navbar">
-    <div class="nav-container">
-      <a href="#" class="nav-logo">
-        <div class="logo-icon">
-          <i class="fas fa-fire"></i>
-        </div>
-        <span class="logo-text">FanVault</span>
+    <div class="nav-inner">
+      <a href="#home" class="brand">
+        <div class="brand-mark"><i class="fas fa-code-branch"></i></div>
+        <span class="brand-name">Dev<span class="brand-accent">Pay</span></span>
+        <span class="brand-tag">// github work</span>
       </a>
 
       <ul class="nav-links" id="navLinks">
         <li><a href="#home" class="nav-link">Home</a></li>
-        <li><a href="#preview" class="nav-link">Preview</a></li>
-        <li><a href="#tiers" class="nav-link">Tiers</a></li>
+        <li><a href="#work" class="nav-link">Shipped work</a></li>
+        <li><a href="#rates" class="nav-link">Rates</a></li>
+        <li><a href="#services" class="nav-link">Services</a></li>
         <li><a href="#faq" class="nav-link">FAQ</a></li>
-        <li>
-          <a href="#subscribe" class="nav-link nav-cta-btn">
-            <i class="fas fa-unlock-keyhole"></i> Subscribe
-          </a>
-        </li>
       </ul>
 
-      <button class="hamburger" id="hamburger" aria-label="Toggle menu">
-        <span></span><span></span><span></span>
-      </button>
+      <div class="nav-actions">
+        <a href="#pay" class="btn btn-primary btn-sm">
+          <i class="fas fa-bolt"></i> Pay an invoice
+        </a>
+        <button class="hamburger" id="hamburger" aria-label="Toggle menu" aria-expanded="false">
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="mobile-drawer" id="mobileDrawer">
+      <a href="#home">Home</a>
+      <a href="#work">Shipped work</a>
+      <a href="#rates">Rates</a>
+      <a href="#services">Services</a>
+      <a href="#faq">FAQ</a>
+      <a href="#pay" class="drawer-cta"><i class="fas fa-bolt"></i> Pay an invoice</a>
     </div>
   </nav>
 
   <!-- ============================================================
-       HERO SECTION
+       HERO
   ============================================================ -->
-  <section class="hero" id="home">
-    <div class="hero-bg-effects">
-      <div class="hero-gradient-orb orb-1"></div>
-      <div class="hero-gradient-orb orb-2"></div>
-      <div class="hero-gradient-orb orb-3"></div>
-      <div class="hero-grid-overlay"></div>
+  <header class="hero" id="home">
+    <div class="hero-bg" aria-hidden="true">
+      <div class="orb orb-1"></div>
+      <div class="orb orb-2"></div>
+      <div class="hero-grid"></div>
+      <div class="hero-scan"></div>
     </div>
 
-    <div class="hero-content">
-      <!-- Creator Avatar -->
-      <div class="creator-avatar-wrapper">
-        <div class="creator-avatar">
-          <!-- ✅ FILL IN: Replace with your actual photo -->
-          <img
-            src="chloe.lovely.jpg"
-            alt="Creator profile"
-          />
-          <div class="avatar-ring"></div>
-          <div class="avatar-badge">
-            <i class="fas fa-circle-check"></i>
-          </div>
-        </div>
-      </div>
-
-      <!-- Creator Info -->
-      <div class="creator-info">
-        <div class="creator-handle">
-          <i class="fas fa-at"></i>
-          <!-- ✅ FILL IN: Your username -->
-          <span>lovelychloe</span>
-          <span class="verified-badge">
-            <i class="fas fa-badge-check"></i> Verified
-          </span>
+    <div class="container hero-container">
+      <div class="hero-copy">
+        <div class="pill reveal">
+          <span class="dot-live"></span>
+          Available for new work
+          <span class="pill-sep">·</span>
+          <span class="mono">avg. 4h reply</span>
         </div>
 
-        <h1 class="hero-title">
-          Exclusive Content<br />
-          <span class="gradient-text">Unlocked Just For You</span>
+        <h1 class="hero-title reveal">
+          I ship the PR.<br />
+          <span class="gradient-text">You pay for the merge.</span>
         </h1>
 
-        <p class="hero-subtitle">
-          Get instant access to my premium photos, videos, sexcams behind-the-scenes
-          content, and personal messages. New content uploaded daily.
+        <p class="hero-subtitle reveal">
+          A simple, invoice-first payment page for developers I work with on GitHub.
+          Bug fixes, features, reviews and retainers — pay securely by card, bank
+          transfer, USSD or mobile money. You get a receipt, I get a merged commit.
         </p>
 
-        <!-- Stats Row -->
-        <div class="creator-stats">
-          <div class="stat-item">
-            <span class="stat-value" data-target="847">0</span>
-            <span class="stat-label">Posts</span>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat-item">
-            <span class="stat-value" data-target="23400">0</span>
-            <span class="stat-label">Subscribers</span>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat-item">
-            <span class="stat-value" data-target="156">0</span>
-            <span class="stat-label">Media Files</span>
-          </div>
-          <div class="stat-divider"></div>
-          <div class="stat-item">
-            <span class="stat-value">4.9</span>
-            <span class="stat-label">
-              <i class="fas fa-star" style="color:#f59e0b;font-size:.7rem"></i>
-              Rating
-            </span>
-          </div>
-        </div>
-
-        <!-- CTA Buttons -->
-        <div class="hero-cta-group">
-          <a href="#subscribe" class="btn btn-primary btn-lg btn-glow">
-            <i class="fas fa-unlock-keyhole"></i>
-            Subscribe Now
+        <div class="hero-actions reveal">
+          <a href="#pay" class="btn btn-primary btn-lg">
+            <i class="fas fa-credit-card"></i> Pay for work
           </a>
-          <a href="#preview" class="btn btn-glass btn-lg">
-            <i class="fas fa-play"></i>
-            Free Preview
+          <a href="#work" class="btn btn-ghost btn-lg">
+            <i class="fab fa-github"></i> See shipped work
           </a>
         </div>
 
-        <!-- Social Proof -->
-        <div class="social-proof">
-          <div class="subscriber-faces">
-            <img src="https://i.pravatar.cc/40?img=1" alt="" />
-            <img src="https://i.pravatar.cc/40?img=2" alt="" />
-            <img src="https://i.pravatar.cc/40?img=3" alt="" />
-            <img src="https://i.pravatar.cc/40?img=4" alt="" />
-            <img src="https://i.pravatar.cc/40?img=5" alt="" />
-          </div>
-          <span>
-            <strong>340+</strong> people subscribed this week
-          </span>
+        <div class="hero-trust reveal">
+          <div class="trust-item"><i class="fas fa-shield-halved"></i> Secured by Paystack</div>
+          <div class="trust-item"><i class="fas fa-lock"></i> No card data on this site</div>
+          <div class="trust-item"><i class="fas fa-receipt"></i> Instant receipt</div>
         </div>
+      </div>
+
+      <!-- Payment console card -->
+      <div class="hero-visual reveal">
+        <div class="console-card">
+          <div class="console-bar">
+            <span class="console-dots"><i></i><i></i><i></i></span>
+            <span class="console-title mono">invoice.preview</span>
+            <span class="console-badge">LIVE</span>
+          </div>
+
+          <div class="console-body">
+            <div class="console-repo">
+              <i class="fab fa-github"></i>
+              <span class="mono">@lovelychloe<span class="dim">/</span>acme-api</span>
+              <span class="branch-chip"><i class="fas fa-code-branch"></i> main</span>
+            </div>
+
+            <div class="console-pr">
+              <div class="pr-line">
+                <span class="pr-num mono">#482</span>
+                <span class="pr-title">fix: race condition in webhook retries</span>
+              </div>
+              <div class="pr-tags">
+                <span class="tag tag-green"><i class="fas fa-check"></i> merged</span>
+                <span class="tag">+412 −118</span>
+                <span class="tag">tests ✓</span>
+              </div>
+            </div>
+
+            <div class="console-divider"></div>
+
+            <div class="console-row">
+              <span>Scope</span>
+              <span class="mono">Bug fix — 2 files</span>
+            </div>
+            <div class="console-row">
+              <span>Amount due</span>
+              <span class="mono console-amount">$25.00</span>
+            </div>
+            <div class="console-row">
+              <span>Charge (NGN)</span>
+              <span class="mono">₦40,000.00</span>
+            </div>
+            <div class="console-row">
+              <span>Settlement</span>
+              <span class="mono sub-line">ACCT_4i2l4tyiv5p48cu</span>
+            </div>
+
+            <div class="console-status">
+              <span class="status-led"></span>
+              <span class="mono">routed to subaccount · split configured</span>
+            </div>
+          </div>
+
+          <div class="console-foot mono">
+            <i class="fas fa-terminal"></i> paystack checkout · ready
+          </div>
+        </div>
+
+        <div class="floating-chip chip-1"><i class="fas fa-circle-check"></i> Receipt sent</div>
+        <div class="floating-chip chip-2"><i class="fas fa-shield-halved"></i> PCI-DSS</div>
       </div>
     </div>
 
-    <!-- Scroll CTA -->
-    <div class="scroll-cta">
-      <div class="scroll-mouse"><div class="scroll-wheel"></div></div>
-      <span>Scroll to explore</span>
+    <!-- Stats strip -->
+    <div class="container">
+      <div class="stats-strip reveal">
+        <div class="stat">
+          <span class="stat-value" data-target="214">0</span>
+          <span class="stat-label">PRs merged</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" data-target="37">0</span>
+          <span class="stat-label">Repos contributed</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" data-target="68">0</span>
+          <span class="stat-label">Devs paid me</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" data-target="100" data-suffix="%">0</span>
+          <span class="stat-label">Receipts delivered</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       SHIPPED WORK
+  ============================================================ -->
+  <section class="section" id="work">
+    <div class="container">
+      <div class="section-head">
+        <span class="eyebrow"><i class="fab fa-github"></i> Proof of work</span>
+        <h2 class="section-title">Recently <span class="gradient-text">shipped &amp; paid</span></h2>
+        <p class="section-sub">
+          Real scopes, real merges, real invoices. Every one of these was paid through
+          this page and settled to the same subaccount.
+        </p>
+      </div>
+
+      <div class="work-grid" id="workGrid">
+        <article class="work-card reveal">
+          <div class="work-top">
+            <span class="repo-name"><i class="fab fa-github"></i> acme-api</span>
+            <span class="tag tag-green"><i class="fas fa-check"></i> merged</span>
+          </div>
+          <h3>fix: race condition in webhook retries</h3>
+          <p class="work-desc">Idempotency keys + retry backoff. Added regression tests and a metrics counter for dead-lettered events.</p>
+          <div class="work-meta">
+            <span><i class="fas fa-code-branch"></i> #482</span>
+            <span class="lang"><i class="lang-dot lang-ts"></i> TypeScript</span>
+            <span><i class="fas fa-coins"></i> $25</span>
+          </div>
+          <div class="work-foot mono">merged 6 days ago · paid</div>
+        </article>
+
+        <article class="work-card reveal">
+          <div class="work-top">
+            <span class="repo-name"><i class="fab fa-github"></i> shipping-dashboard</span>
+            <span class="tag tag-green"><i class="fas fa-check"></i> merged</span>
+          </div>
+          <h3>feat: live tracking map with websocket updates</h3>
+          <p class="work-desc">Mapbox layer, reconnect logic and optimistic updates. Shipped behind a feature flag with a rollout plan.</p>
+          <div class="work-meta">
+            <span><i class="fas fa-code-branch"></i> #1190</span>
+            <span class="lang"><i class="lang-dot lang-js"></i> JavaScript</span>
+            <span><i class="fas fa-coins"></i> $60</span>
+          </div>
+          <div class="work-foot mono">merged 2 weeks ago · paid</div>
+        </article>
+
+        <article class="work-card reveal">
+          <div class="work-top">
+            <span class="repo-name"><i class="fab fa-github"></i> paystack-go</span>
+            <span class="tag tag-green"><i class="fas fa-check"></i> merged</span>
+          </div>
+          <h3>refactor: split payments + subaccount support</h3>
+          <p class="work-desc">Typed subaccount fields, transaction_charge and bearer handling, plus README examples and fixtures.</p>
+          <div class="work-meta">
+            <span><i class="fas fa-code-branch"></i> #77</span>
+            <span class="lang"><i class="lang-dot lang-go"></i> Go</span>
+            <span><i class="fas fa-coins"></i> $60</span>
+          </div>
+          <div class="work-foot mono">merged 3 weeks ago · paid</div>
+        </article>
+
+        <article class="work-card reveal">
+          <div class="work-top">
+            <span class="repo-name"><i class="fab fa-github"></i> internal-cli</span>
+            <span class="tag tag-green"><i class="fas fa-check"></i> merged</span>
+          </div>
+          <h3>chore: migrate CI to reusable workflows</h3>
+          <p class="work-desc">Cut pipeline time from 14m to 5m, added caching and matrix test runs across Node 20 and 22.</p>
+          <div class="work-meta">
+            <span><i class="fas fa-code-branch"></i> #301</span>
+            <span class="lang"><i class="lang-dot lang-yml"></i> YAML</span>
+            <span><i class="fas fa-coins"></i> $25</span>
+          </div>
+          <div class="work-foot mono">merged 4 weeks ago · paid</div>
+        </article>
+
+        <article class="work-card reveal">
+          <div class="work-top">
+            <span class="repo-name"><i class="fab fa-github"></i> mobile-wallet</span>
+            <span class="tag tag-green"><i class="fas fa-check"></i> merged</span>
+          </div>
+          <h3>fix: double-charge on failed 3DS callback</h3>
+          <p class="work-desc">Reference locking on the client and a server-side idempotency guard. Added a refund runbook for ops.</p>
+          <div class="work-meta">
+            <span><i class="fas fa-code-branch"></i> #664</span>
+            <span class="lang"><i class="lang-dot lang-kt"></i> Kotlin</span>
+            <span><i class="fas fa-coins"></i> $25</span>
+          </div>
+          <div class="work-foot mono">merged 5 weeks ago · paid</div>
+        </article>
+
+        <article class="work-card reveal">
+          <div class="work-top">
+            <span class="repo-name"><i class="fab fa-github"></i> docs-site</span>
+            <span class="tag tag-green"><i class="fas fa-check"></i> merged</span>
+          </div>
+          <h3>docs: complete API reference rewrite</h3>
+          <p class="work-desc">Restructured 40 pages, added runnable cURL examples and a search index. Reviewed by two maintainers.</p>
+          <div class="work-meta">
+            <span><i class="fas fa-code-branch"></i> #208</span>
+            <span class="lang"><i class="lang-dot lang-md"></i> MDX</span>
+            <span><i class="fas fa-coins"></i> $60</span>
+          </div>
+          <div class="work-foot mono">merged 6 weeks ago · paid</div>
+        </article>
+      </div>
+
+      <p class="work-note">
+        <i class="fas fa-circle-info"></i>
+        These are sample entries — edit the text in <code>index.html</code> to match your own merged PRs.
+      </p>
     </div>
   </section>
 
   <!-- ============================================================
-       CONTENT PREVIEW (Blurred / Locked)
+       RATES
   ============================================================ -->
-  <section class="preview-section" id="preview">
+  <section class="section section-alt" id="rates">
     <div class="container">
-      <div class="section-header">
-        <span class="section-badge">
-          <i class="fas fa-eye"></i> Content Preview
-        </span>
-        <h2 class="section-title">
-          A Taste of What's<br />
-          <span class="gradient-text">Inside the Vault</span>
-        </h2>
-        <p class="section-subtitle">
-          Unlock all content instantly after subscribing. New uploads every day.
+      <div class="section-head">
+        <span class="eyebrow"><i class="fas fa-tags"></i> Transparent rates</span>
+        <h2 class="section-title">Pick the scope <span class="gradient-text">you need</span></h2>
+        <p class="section-sub">
+          Prices are in USD for clarity. Paystack charges in NGN at the rate shown
+          in checkout — tax-free, no hidden markup, no per-seat nonsense.
         </p>
       </div>
 
-      <!-- Content Grid — Blurred / Locked -->
-      <div class="content-grid" id="contentGrid">
-
-        <!-- Row 1: Featured Large -->
-        <div class="content-card featured" data-tier="1">
-          <div class="card-media">
-            <img
-              src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=800&q=80"
-              alt="Premium content"
-              loading="lazy"
-            />
-            <div class="card-blur-overlay"></div>
-            <div class="card-lock">
-              <div class="lock-icon"><i class="fas fa-lock"></i></div>
-              <span class="lock-tier">Basic Tier</span>
-              <span class="lock-price">$10 to Unlock</span>
-            </div>
-            <div class="card-type-badge">
-              <i class="fas fa-image"></i> Photo Set
-            </div>
-            <div class="card-count">
-              <i class="fas fa-images"></i> 30 Photos
-            </div>
+      <div class="rates-grid">
+        <!-- 1 -->
+        <div class="tier-card reveal" data-tier-card="1">
+          <div class="tier-head">
+            <div class="tier-icon"><i class="fas fa-bug"></i></div>
+            <h3 class="tier-name">Quick Fix</h3>
+            <p class="tier-tagline">One small, well-defined bug</p>
           </div>
-          <div class="card-info">
-            <h3>Behind the Scenes — Studio Shoot</h3>
-            <p>Exclusive photos from my latest professional studio session.</p>
-            <div class="card-meta">
-              <span><i class="fas fa-heart"></i> 1.2K</span>
-              <span><i class="fas fa-comment"></i> 89</span>
-              <span><i class="fas fa-clock"></i> 2 hrs ago</span>
-            </div>
+          <div class="tier-price">
+            <span class="price-currency">$</span>
+            <span class="price-amount" data-price-display="10">10</span>
+            <span class="price-period">/ fix</span>
           </div>
-        </div>
-
-        <!-- Card 2 -->
-        <div class="content-card" data-tier="2">
-          <div class="card-media">
-            <img
-              src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=600&q=80"
-              alt="Premium content"
-              loading="lazy"
-            />
-            <div class="card-blur-overlay"></div>
-            <div class="card-lock">
-              <div class="lock-icon"><i class="fas fa-lock"></i></div>
-              <span class="lock-tier">Standard</span>
-              <span class="lock-price">$15 to Unlock</span>
-            </div>
-            <div class="card-type-badge video">
-              <i class="fas fa-video"></i> Video
-            </div>
-            <div class="card-duration">
-              <i class="fas fa-play"></i> 12:34
-            </div>
-          </div>
-          <div class="card-info">
-            <h3>Can't live without masturbating — Unfiltered Vlog</h3>
-            <p>Raw, unedited footage of my dripping pussy.</p>
-            <div class="card-meta">
-              <span><i class="fas fa-heart"></i> 890</span>
-              <span><i class="fas fa-comment"></i> 56</span>
-              <span><i class="fas fa-clock"></i> 5 hrs ago</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Card 3 -->
-        <div class="content-card" data-tier="1">
-          <div class="card-media">
-            <img
-              src="https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&q=80"
-              alt="Premium content"
-              loading="lazy"
-            />
-            <div class="card-blur-overlay"></div>
-            <div class="card-lock">
-              <div class="lock-icon"><i class="fas fa-lock"></i></div>
-              <span class="lock-tier">Basic</span>
-              <span class="lock-price">$10 to Unlock</span>
-            </div>
-            <div class="card-type-badge">
-              <i class="fas fa-image"></i> Photo Set
-            </div>
-            <div class="card-count">
-              <i class="fas fa-images"></i> 18 Photos
-            </div>
-          </div>
-          <div class="card-info">
-            <h3>Golden Hour — Beach Collection</h3>
-            <p>Sunset photoshoot from my Malibu trip.</p>
-            <div class="card-meta">
-              <span><i class="fas fa-heart"></i> 2.1K</span>
-              <span><i class="fas fa-comment"></i> 134</span>
-              <span><i class="fas fa-clock"></i> 1 day ago</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Card 4 -->
-        <div class="content-card" data-tier="3">
-          <div class="card-media">
-            <img
-              src="https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=600&q=80"
-              alt="Premium content"
-              loading="lazy"
-            />
-            <div class="card-blur-overlay"></div>
-            <div class="card-lock">
-              <div class="lock-icon"><i class="fas fa-lock"></i></div>
-              <span class="lock-tier">Premium</span>
-              <span class="lock-price">$20 to Unlock</span>
-            </div>
-            <div class="card-type-badge audio">
-              <i class="fas fa-microphone"></i> Voice Note/Call Sexcam 
-            </div>
-          </div>
-          <div class="card-info">
-            <h3>Personal Audio Message — Subscribers Only</h3>
-            <p>A personal thank-you voice note for premium members.</p>
-            <div class="card-meta">
-              <span><i class="fas fa-heart"></i> 678</span>
-              <span><i class="fas fa-comment"></i> 42</span>
-              <span><i class="fas fa-clock"></i> 2 days ago</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Card 5 -->
-        <div class="content-card" data-tier="4">
-          <div class="card-media">
-            <img
-              src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=600&q=80"
-              alt="Premium content"
-              loading="lazy"
-            />
-            <div class="card-blur-overlay"></div>
-            <div class="card-lock">
-              <div class="lock-icon"><i class="fas fa-lock"></i></div>
-              <span class="lock-tier">VIP</span>
-              <span class="lock-price">$25 to Unlock</span>
-            </div>
-            <div class="card-type-badge vip">
-              <i class="fas fa-crown"></i> VIP Exclusive
-            </div>
-            <div class="card-count">
-              <i class="fas fa-images"></i> 80 Photos + Video
-            </div>
-          </div>
-          <div class="card-info">
-            <h3>VIP Only — Complete Unreleased Bundle</h3>
-            <p>Never-before-seen content bundle with video diary.</p>
-            <div class="card-meta">
-              <span><i class="fas fa-heart"></i> 3.4K</span>
-              <span><i class="fas fa-comment"></i> 201</span>
-              <span><i class="fas fa-clock"></i> 3 days ago</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Card 6 -->
-        <div class="content-card" data-tier="2">
-          <div class="card-media">
-            <img
-              src="https://images.unsplash.com/photo-1502823403499-6ccfcf4fb453?w=600&q=80"
-              alt="Premium content"
-              loading="lazy"
-            />
-            <div class="card-blur-overlay"></div>
-            <div class="card-lock">
-              <div class="lock-icon"><i class="fas fa-lock"></i></div>
-              <span class="lock-tier">Standard</span>
-              <span class="lock-price">$15 to Unlock</span>
-            </div>
-            <div class="card-type-badge video">
-              <i class="fas fa-video"></i> Video
-            </div>
-            <div class="card-duration">
-              <i class="fas fa-play"></i> 8:22
-            </div>
-          </div>
-          <div class="card-info">
-            <h3>Q&A — Your Questions Answered</h3>
-            <p>I answer your most-asked questions in this exclusive video.</p>
-            <div class="card-meta">
-              <span><i class="fas fa-heart"></i> 567</span>
-              <span><i class="fas fa-comment"></i> 98</span>
-              <span><i class="fas fa-clock"></i> 4 days ago</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Load More CTA -->
-      <div class="preview-cta">
-        <div class="locked-count">
-          <i class="fas fa-lock"></i>
-          <span><strong>847</strong> more posts locked — Subscribe to unlock all</span>
-        </div>
-        <a href="#subscribe" class="btn btn-primary btn-lg btn-glow">
-          <i class="fas fa-unlock-keyhole"></i>
-          Unlock All Content
-        </a>
-      </div>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       SUBSCRIPTION TIERS SECTION
-  ============================================================ -->
-  <section class="tiers-section" id="tiers">
-    <div class="container">
-      <div class="section-header">
-        <span class="section-badge">
-          <i class="fas fa-crown"></i> Membership Tiers
-        </span>
-        <h2 class="section-title">
-          Choose Your<br />
-          <span class="gradient-text">Access Level</span>
-        </h2>
-        <p class="section-subtitle">
-          One-time payment. Instant access. No recurring charges.
-          Pick the tier that suits you.
-        </p>
-      </div>
-
-      <div class="tiers-grid">
-
-        <!-- TIER 1 — Basic ($10) -->
-        <div class="tier-card" data-tier="1" data-price="10">
-          <div class="tier-header">
-            <div class="tier-icon basic-icon">
-              <i class="fas fa-bolt"></i>
-            </div>
-            <h3 class="tier-name">Basic</h3>
-            <div class="tier-price">
-              <span class="price-currency">$</span>
-              <span class="price-amount">10</span>
-              <span class="price-period">one-time</span>
-            </div>
-          </div>
-          <div class="tier-body">
-            <ul class="tier-features">
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Access to all basic photo sets
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                50+ exclusive photos
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Community feed access
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Monthly content updates
-              </li>
-              <li class="excluded">
-                <i class="fas fa-circle-xmark"></i>
-                Video content
-              </li>
-              <li class="excluded">
-                <i class="fas fa-circle-xmark"></i>
-                Direct messages
-              </li>
-              <li class="excluded">
-                <i class="fas fa-circle-xmark"></i>
-                VIP exclusive bundles
-              </li>
-            </ul>
-          </div>
-          <div class="tier-footer">
+          <div class="tier-ngn mono" data-ngn-display="10">≈ ₦16,000</div>
+          <ul class="tier-features">
+            <li><i class="fas fa-check"></i> One PR, under 50 lines</li>
+            <li><i class="fas fa-check"></i> Repro steps documented</li>
+            <li><i class="fas fa-check"></i> Regression test added</li>
+            <li><i class="fas fa-check"></i> 48h turnaround</li>
+          </ul>
+          <div class="tier-foot">
             <button class="btn btn-tier" data-tier="1" data-price="10">
-              <i class="fas fa-unlock-keyhole"></i>
-              Get Basic Access
+              Pay $10 <i class="fas fa-arrow-right"></i>
             </button>
           </div>
         </div>
 
-        <!-- TIER 2 — Standard ($15) -->
-        <div class="tier-card" data-tier="2" data-price="15">
-          <div class="tier-header">
-            <div class="tier-icon standard-icon">
-              <i class="fas fa-gem"></i>
-            </div>
-            <h3 class="tier-name">Standard</h3>
-            <div class="tier-price">
-              <span class="price-currency">$</span>
-              <span class="price-amount">15</span>
-              <span class="price-period">one-time</span>
-            </div>
+        <!-- 2 -->
+        <div class="tier-card reveal" data-tier-card="2">
+          <div class="tier-head">
+            <div class="tier-icon"><i class="fas fa-wrench"></i></div>
+            <h3 class="tier-name">Bug Fix</h3>
+            <p class="tier-tagline">Standard issue + tests</p>
           </div>
-          <div class="tier-body">
-            <ul class="tier-features">
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Everything in Basic
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                All video content (20+ videos)
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Behind-the-scenes footage
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Full photo collection (150+)
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Early access to new content
-              </li>
-              <li class="excluded">
-                <i class="fas fa-circle-xmark"></i>
-                Direct messages
-              </li>
-              <li class="excluded">
-                <i class="fas fa-circle-xmark"></i>
-                VIP exclusive bundles
-              </li>
-            </ul>
+          <div class="tier-price">
+            <span class="price-currency">$</span>
+            <span class="price-amount" data-price-display="25">25</span>
+            <span class="price-period">/ fix</span>
           </div>
-          <div class="tier-footer">
-            <button class="btn btn-tier" data-tier="2" data-price="15">
-              <i class="fas fa-unlock-keyhole"></i>
-              Get Standard Access
+          <div class="tier-ngn mono" data-ngn-display="25">≈ ₦40,000</div>
+          <ul class="tier-features">
+            <li><i class="fas fa-check"></i> Up to 3 files / 150 lines</li>
+            <li><i class="fas fa-check"></i> Tests + CI green</li>
+            <li><i class="fas fa-check"></i> PR description &amp; changelog</li>
+            <li><i class="fas fa-check"></i> 24h turnaround</li>
+            <li><i class="fas fa-check"></i> 7 days of post-merge support</li>
+          </ul>
+          <div class="tier-foot">
+            <button class="btn btn-tier" data-tier="2" data-price="25">
+              Pay $25 <i class="fas fa-arrow-right"></i>
             </button>
           </div>
         </div>
 
-        <!-- TIER 3 — Premium ($20) — POPULAR -->
-        <div class="tier-card popular" data-tier="3" data-price="20">
-          <div class="popular-badge">
-            <i class="fas fa-fire"></i> Most Popular
+        <!-- 3 -->
+        <div class="tier-card tier-featured reveal" data-tier-card="3">
+          <span class="tier-ribbon">Most common</span>
+          <div class="tier-head">
+            <div class="tier-icon"><i class="fas fa-rocket"></i></div>
+            <h3 class="tier-name">Feature PR</h3>
+            <p class="tier-tagline">Scoped feature, reviewed &amp; merged</p>
           </div>
-          <div class="tier-header">
-            <div class="tier-icon premium-icon">
-              <i class="fas fa-fire-flame-curved"></i>
-            </div>
-            <h3 class="tier-name">Premium</h3>
-            <div class="tier-price">
-              <span class="price-currency">$</span>
-              <span class="price-amount">20</span>
-              <span class="price-period">one-time</span>
-            </div>
+          <div class="tier-price">
+            <span class="price-currency">$</span>
+            <span class="price-amount" data-price-display="60">60</span>
+            <span class="price-period">/ feature</span>
           </div>
-          <div class="tier-body">
-            <ul class="tier-features">
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Everything in Standard
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Personal voice notes & audio
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Full HD video downloads
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Direct messaging access
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Priority content requests
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Member-only live streams
-              </li>
-              <li class="excluded">
-                <i class="fas fa-circle-xmark"></i>
-                VIP exclusive bundles
-              </li>
-            </ul>
-          </div>
-          <div class="tier-footer">
-            <button class="btn btn-tier btn-popular" data-tier="3" data-price="20">
-              <i class="fas fa-fire"></i>
-              Get Premium Access
+          <div class="tier-ngn mono" data-ngn-display="60">≈ ₦96,000</div>
+          <ul class="tier-features">
+            <li><i class="fas fa-check"></i> Up to 5 working days of build</li>
+            <li><i class="fas fa-check"></i> Tests, docs &amp; migration notes</li>
+            <li><i class="fas fa-check"></i> One review round included</li>
+            <li><i class="fas fa-check"></i> Feature flag + rollback plan</li>
+            <li><i class="fas fa-check"></i> 14 days of post-merge support</li>
+          </ul>
+          <div class="tier-foot">
+            <button class="btn btn-tier btn-tier-featured" data-tier="3" data-price="60">
+              Pay $60 <i class="fas fa-arrow-right"></i>
             </button>
           </div>
         </div>
 
-        <!-- TIER 4 — VIP ($25) -->
-        <div class="tier-card vip-card" data-tier="4" data-price="25">
-          <div class="vip-glow"></div>
-          <div class="tier-header">
-            <div class="tier-icon vip-icon">
-              <i class="fas fa-crown"></i>
-            </div>
-            <h3 class="tier-name">VIP</h3>
-            <div class="tier-price">
-              <span class="price-currency">$</span>
-              <span class="price-amount">25</span>
-              <span class="price-period">one-time</span>
-            </div>
+        <!-- 4 -->
+        <div class="tier-card reveal" data-tier-card="4">
+          <div class="tier-head">
+            <div class="tier-icon"><i class="fas fa-infinity"></i></div>
+            <h3 class="tier-name">Retainer</h3>
+            <p class="tier-tagline">Monthly, priority queue</p>
           </div>
-          <div class="tier-body">
-            <ul class="tier-features">
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                <strong>Everything included — full access</strong>
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                VIP exclusive unreleased bundles
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Custom content requests
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                1-on-1 video call (15 min)
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Lifetime access to all future content
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Name in VIP supporters wall
-              </li>
-              <li class="included">
-                <i class="fas fa-circle-check"></i>
-                Priority DM responses
-              </li>
-            </ul>
+          <div class="tier-price">
+            <span class="price-currency">$</span>
+            <span class="price-amount" data-price-display="200">200</span>
+            <span class="price-period">/ month</span>
           </div>
-          <div class="tier-footer">
-            <button class="btn btn-tier btn-vip" data-tier="4" data-price="25">
-              <i class="fas fa-crown"></i>
-              Get VIP Access
+          <div class="tier-ngn mono" data-ngn-display="200">≈ ₦320,000</div>
+          <ul class="tier-features">
+            <li><i class="fas fa-check"></i> 20 hours / month on your repo</li>
+            <li><i class="fas fa-check"></i> Priority review &amp; async standups</li>
+            <li><i class="fas fa-check"></i> Weekly merged-PR summary</li>
+            <li><i class="fas fa-check"></i> On-call for production bugs</li>
+            <li><i class="fas fa-check"></i> Cancel or pause anytime</li>
+          </ul>
+          <div class="tier-foot">
+            <button class="btn btn-tier" data-tier="4" data-price="200">
+              Pay $200 <i class="fas fa-arrow-right"></i>
             </button>
           </div>
         </div>
       </div>
 
-      <!-- Guarantee Banner -->
-      <div class="guarantee-banner">
-        <div class="guarantee-icon">
-          <i class="fas fa-shield-check"></i>
-        </div>
-        <div class="guarantee-text">
-          <strong>100% Satisfaction Guarantee</strong>
-          <p>Not happy? Contact us within 24 hours for a full refund. No questions asked.</p>
+      <div class="guarantee reveal">
+        <div class="guarantee-icon"><i class="fas fa-shield-halved"></i></div>
+        <div>
+          <strong>Not merged? Not charged.</strong>
+          <p>If a PR is rejected for reasons within my control, you get a full refund within 7 days — no arguments, no invoices to chase.</p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ============================================================
-       WHAT YOU GET SECTION
+       SERVICES
   ============================================================ -->
-  <section class="features-section" id="features">
+  <section class="section" id="services">
     <div class="container">
-      <div class="section-header">
-        <span class="section-badge">
-          <i class="fas fa-sparkles"></i> What You Get
-        </span>
-        <h2 class="section-title">
-          More Than Just<br />
-          <span class="gradient-text">Photos & Videos</span>
-        </h2>
+      <div class="section-head">
+        <span class="eyebrow"><i class="fas fa-layer-group"></i> What's included</span>
+        <h2 class="section-title">Every payment includes <span class="gradient-text">the boring parts</span></h2>
+        <p class="section-sub">
+          The stuff that actually keeps a repo healthy — tests, docs, review
+          responses and a clean history. No drive-by commits.
+        </p>
       </div>
 
       <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-camera-retro"></i></div>
-          <h3>Exclusive Photos</h3>
-          <p>High-resolution professional photoshoots you won't find anywhere else.</p>
+        <div class="feature-card reveal">
+          <div class="feature-icon"><i class="fas fa-code-pull-request"></i></div>
+          <h3>Clean, reviewable PRs</h3>
+          <p>Small diffs, conventional commits, linked issues and a description a maintainer can actually review.</p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-clapperboard"></i></div>
-          <h3>HD Videos</h3>
-          <p>Full-length behind-the-scenes videos, vlogs, and personal diaries.</p>
+        <div class="feature-card reveal">
+          <div class="feature-icon"><i class="fas fa-vial"></i></div>
+          <h3>Tests that run</h3>
+          <p>Unit tests for the fix and a regression test for the bug. CI must be green before you pay.</p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-comment-dots"></i></div>
-          <h3>Direct Messages</h3>
-          <p>Chat with me directly — premium and VIP members get priority replies.</p>
+        <div class="feature-card reveal">
+          <div class="feature-icon"><i class="fas fa-book"></i></div>
+          <h3>Docs &amp; changelog</h3>
+          <p>README updates, inline comments where it matters, and an entry in your changelog.</p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-microphone"></i></div>
-          <h3>Voice Notes</h3>
-          <p>Personal audio messages and shoutouts for premium subscribers.</p>
+        <div class="feature-card reveal">
+          <div class="feature-icon"><i class="fas fa-comments"></i></div>
+          <h3>Review responses</h3>
+          <p>I answer review comments for the agreed window — including after the invoice is settled.</p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-tower-broadcast"></i></div>
-          <h3>Live Streams</h3>
-          <p>Members-only live sessions — ask me anything in real time.</p>
+        <div class="feature-card reveal">
+          <div class="feature-icon"><i class="fas fa-server"></i></div>
+          <h3>Deploy support</h3>
+          <p>Migration notes, env var changes and a rollback plan so releases don't become incidents.</p>
         </div>
-        <div class="feature-card">
-          <div class="feature-icon"><i class="fas fa-gift"></i></div>
-          <h3>Surprise Drops</h3>
-          <p>Random exclusive content drops only for subscribed members.</p>
+        <div class="feature-card reveal">
+          <div class="feature-icon"><i class="fas fa-receipt"></i></div>
+          <h3>Instant invoices</h3>
+          <p>Every payment produces a reference you can drop into your expense tracker or share with your finance team.</p>
         </div>
       </div>
     </div>
@@ -694,609 +497,456 @@
   <!-- ============================================================
        TESTIMONIALS
   ============================================================ -->
-  <section class="testimonials-section">
+  <section class="section section-alt" id="testimonials">
     <div class="container">
-      <div class="section-header">
-        <span class="section-badge">
-          <i class="fas fa-star"></i> Reviews
-        </span>
-        <h2 class="section-title">
-          What Subscribers<br />
-          <span class="gradient-text">Are Saying</span>
-        </h2>
+      <div class="section-head">
+        <span class="eyebrow"><i class="fas fa-quote-left"></i> From the repos</span>
+        <h2 class="section-title">What <span class="gradient-text">teams say</span></h2>
       </div>
 
-      <div class="testimonials-grid">
-        <div class="testimonial-card">
-          <div class="testimonial-stars">
-            <i class="fas fa-star"></i><i class="fas fa-star"></i>
-            <i class="fas fa-star"></i><i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-          </div>
-          <p class="testimonial-text">
-            "Absolutely worth it! The content quality is insane. Way better than
-            I expected. The VIP tier is a steal."
-          </p>
-          <div class="testimonial-author">
-            <img src="https://i.pravatar.cc/48?img=11" alt="" />
-            <div>
-              <strong>Mike R.</strong>
-              <span>VIP Member</span>
-            </div>
-          </div>
-        </div>
+      <div class="quotes-grid">
+        <figure class="quote-card reveal">
+          <div class="quote-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <blockquote>"Took a flaky test suite from 40% failures to stable in one PR. Paying was a two-minute checkout and the receipt went straight to finance."</blockquote>
+          <figcaption>
+            <span class="quote-avatar">AK</span>
+            <span><strong>Adaeze K.</strong><small>CTO · fintech startup</small></span>
+          </figcaption>
+        </figure>
 
-        <div class="testimonial-card">
-          <div class="testimonial-stars">
-            <i class="fas fa-star"></i><i class="fas fa-star"></i>
-            <i class="fas fa-star"></i><i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-          </div>
-          <p class="testimonial-text">
-            "I started with Basic and upgraded to Premium the same day.
-            The DM access alone is worth it. 10/10 recommend."
-          </p>
-          <div class="testimonial-author">
-            <img src="https://i.pravatar.cc/48?img=32" alt="" />
-            <div>
-              <strong>Sarah K.</strong>
-              <span>Premium Member</span>
-            </div>
-          </div>
-        </div>
+        <figure class="quote-card reveal">
+          <div class="quote-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <blockquote>"We scope on Friday, the branch is open Monday and merged Tuesday. The PR descriptions are better than most of my team's."</blockquote>
+          <figcaption>
+            <span class="quote-avatar">TM</span>
+            <span><strong>Tunde M.</strong><small>Lead engineer · logistics</small></span>
+          </figcaption>
+        </figure>
 
-        <div class="testimonial-card">
-          <div class="testimonial-stars">
-            <i class="fas fa-star"></i><i class="fas fa-star"></i>
-            <i class="fas fa-star"></i><i class="fas fa-star"></i>
-            <i class="fas fa-star"></i>
-          </div>
-          <p class="testimonial-text">
-            "New content every day, super responsive in DMs, and the live streams
-            are so fun. Best subscription I've ever made."
-          </p>
-          <div class="testimonial-author">
-            <img src="https://i.pravatar.cc/48?img=53" alt="" />
-            <div>
-              <strong>James T.</strong>
-              <span>Standard Member</span>
-            </div>
-          </div>
-        </div>
+        <figure class="quote-card reveal">
+          <div class="quote-stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <blockquote>"No agency overhead, no vague hourly logs. Fixed scope, fixed price, receipt in my inbox. Exactly how contractor payments should work."</blockquote>
+          <figcaption>
+            <span class="quote-avatar">RS</span>
+            <span><strong>Rita S.</strong><small>Founder · dev tools</small></span>
+          </figcaption>
+        </figure>
       </div>
     </div>
   </section>
 
   <!-- ============================================================
-       SUBSCRIBE / PAYMENT SECTION
+       PAYMENT
   ============================================================ -->
-  <section class="subscribe-section" id="subscribe">
-    <div class="subscribe-bg-effects">
-      <div class="subscribe-glow"></div>
-      <div class="subscribe-scanlines"></div>
-    </div>
-
+  <section class="section pay-section" id="pay">
     <div class="container">
-      <div class="section-header">
-        <span class="section-badge light">
-          <i class="fas fa-credit-card"></i> Secure Checkout
-        </span>
-        <h2 class="section-title light">
-          Get Instant<br />
-          <span class="gradient-text">Access Now</span>
-        </h2>
-        <p class="section-subtitle light">
-          One-time payment. No subscriptions. No recurring charges. Pay once,
-          enjoy forever.
+      <div class="section-head">
+        <span class="eyebrow"><i class="fas fa-lock"></i> Secure checkout</span>
+        <h2 class="section-title">Pay for the work, <span class="gradient-text">get the receipt</span></h2>
+        <p class="section-sub">
+          Pick the scope, add your email and GitHub handle, and pay. Your card is
+          handled entirely by Paystack — this page never sees it.
         </p>
       </div>
 
-      <div class="checkout-layout">
-
-        <!-- ===== PAYMENT CARD ===== -->
+      <div class="pay-layout">
+        <!-- Payment card -->
         <div class="payment-card" id="paymentCard">
-          <div class="payment-card-glow"></div>
-
-          <!-- Card Header -->
-          <div class="payment-header">
-            <div class="payment-logo">
-              <i class="fas fa-fire"></i>
-              <span>FanVault Checkout</span>
+          <div class="payment-head">
+            <div class="payment-title">
+              <i class="fas fa-bolt"></i>
+              <span>Payment checkout</span>
             </div>
-            <div class="payment-secure">
-              <i class="fas fa-lock"></i> Secure
+            <div class="payment-badges">
+              <span class="mini-badge"><i class="fas fa-lock"></i> TLS</span>
+              <span class="mini-badge"><i class="fas fa-shield-halved"></i> Paystack</span>
             </div>
           </div>
 
-          <!-- ===== FORM STATE ===== -->
+          <!-- ── FORM STATE ─────────────────────────────────── -->
           <div class="payment-body" id="formState">
-
-            <!-- Tier Selector -->
-            <div class="tier-selector">
-              <label class="input-label">
-                <i class="fas fa-layer-group"></i>
-                Select Your Access Tier
-              </label>
+            <div class="form-block">
+              <label class="field-label">What are you paying for?</label>
               <div class="tier-options" id="tierOptions">
-                <button class="tier-option" data-tier="1" data-price="10" data-name="Basic">
-                  <div class="tier-opt-left">
-                    <div class="tier-opt-radio"></div>
-                    <div>
-                      <span class="tier-opt-name">Basic</span>
-                      <span class="tier-opt-desc">Photos + Community</span>
-                    </div>
-                  </div>
-                  <span class="tier-opt-price">$10</span>
+                <button type="button" class="tier-option" data-tier="1" data-price="10">
+                  <span class="opt-name">Quick Fix</span>
+                  <span class="opt-price">$10</span>
                 </button>
-                <button class="tier-option" data-tier="2" data-price="15" data-name="Standard">
-                  <div class="tier-opt-left">
-                    <div class="tier-opt-radio"></div>
-                    <div>
-                      <span class="tier-opt-name">Standard</span>
-                      <span class="tier-opt-desc">Photos + Videos + Early Access</span>
-                    </div>
-                  </div>
-                  <span class="tier-opt-price">$15</span>
+                <button type="button" class="tier-option" data-tier="2" data-price="25">
+                  <span class="opt-name">Bug Fix</span>
+                  <span class="opt-price">$25</span>
                 </button>
-                <button class="tier-option active" data-tier="3" data-price="20" data-name="Premium">
-                  <div class="tier-opt-left">
-                    <div class="tier-opt-radio"></div>
-                    <div>
-                      <span class="tier-opt-name">
-                        Premium
-                        <span class="popular-tag">Popular</span>
-                      </span>
-                      <span class="tier-opt-desc">Everything + DMs + Live</span>
-                    </div>
-                  </div>
-                  <span class="tier-opt-price">$20</span>
+                <button type="button" class="tier-option is-active" data-tier="3" data-price="60">
+                  <span class="opt-name">Feature PR</span>
+                  <span class="opt-price">$60</span>
                 </button>
-                <button class="tier-option" data-tier="4" data-price="25" data-name="VIP">
-                  <div class="tier-opt-left">
-                    <div class="tier-opt-radio"></div>
-                    <div>
-                      <span class="tier-opt-name">
-                        VIP
-                        <span class="vip-tag">
-                          <i class="fas fa-crown"></i>
-                        </span>
-                      </span>
-                      <span class="tier-opt-desc">Full access + 1-on-1 + Lifetime</span>
-                    </div>
-                  </div>
-                  <span class="tier-opt-price">$25</span>
+                <button type="button" class="tier-option" data-tier="4" data-price="200">
+                  <span class="opt-name">Retainer</span>
+                  <span class="opt-price">$200</span>
                 </button>
               </div>
             </div>
 
-            <!-- Form -->
-            <form id="paymentForm" novalidate>
-              <!-- Email -->
-              <div class="form-group">
-                <label class="input-label" for="buyerEmail">
-                  <i class="fas fa-envelope"></i> Email Address
-                </label>
-                <div class="input-wrapper">
-                  <span class="input-icon">
-                    <i class="fas fa-envelope"></i>
-                  </span>
+            <form id="paymentForm" novalidate autocomplete="on">
+              <div class="field">
+                <label for="buyerEmail">Email for the receipt <span class="req">*</span></label>
+                <div class="input-wrap">
+                  <i class="fas fa-envelope input-icon"></i>
                   <input
                     type="email"
                     id="buyerEmail"
-                    class="form-input"
-                    placeholder="you@email.com"
-                    required
+                    name="email"
+                    placeholder="you@company.com"
+                    inputmode="email"
                     autocomplete="email"
+                    required
                   />
                   <span class="input-valid-icon" id="emailValidIcon"></span>
                 </div>
                 <div class="field-error" id="emailError"></div>
-                <div class="input-hint">
-                  Your access link will be sent to this email
+              </div>
+
+              <div class="field-row">
+                <div class="field">
+                  <label for="buyerName">Your name</label>
+                  <div class="input-wrap">
+                    <i class="fas fa-user input-icon"></i>
+                    <input
+                      type="text"
+                      id="buyerName"
+                      name="name"
+                      placeholder="Ada Lovelace"
+                      autocomplete="name"
+                    />
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label for="githubHandle">GitHub handle</label>
+                  <div class="input-wrap">
+                    <i class="fab fa-github input-icon"></i>
+                    <input
+                      type="text"
+                      id="githubHandle"
+                      name="github"
+                      placeholder="@yourhandle"
+                      autocomplete="off"
+                      spellcheck="false"
+                    />
+                  </div>
                 </div>
               </div>
 
-              <!-- Username (optional) -->
-              <div class="form-group">
-                <label class="input-label" for="buyerName">
-                  <i class="fas fa-user"></i>
-                  Display Name <span class="optional">(Optional)</span>
-                </label>
-                <div class="input-wrapper">
-                  <span class="input-icon">
-                    <i class="fas fa-user"></i>
-                  </span>
+              <div class="field">
+                <label for="workReference">PR / issue or invoice note <span class="optional">optional</span></label>
+                <div class="input-wrap">
+                  <i class="fas fa-code-branch input-icon"></i>
                   <input
                     type="text"
-                    id="buyerName"
-                    class="form-input"
-                    placeholder="Your display name"
-                    autocomplete="name"
+                    id="workReference"
+                    name="reference"
+                    placeholder="owner/repo#482 or INV-0142"
+                    autocomplete="off"
+                    spellcheck="false"
                   />
                 </div>
               </div>
 
-              <!-- Order Summary -->
+              <!-- Order summary -->
               <div class="order-summary" id="orderSummary">
                 <div class="summary-row">
-                  <span id="summaryTierName">Premium Access</span>
-                  <span id="summaryPrice">$20.00</span>
+                  <span id="summaryTierName">Feature PR</span>
+                  <span id="summaryPrice" class="mono">$60.00</span>
+                </div>
+                <div class="summary-row summary-muted">
+                  <span>Exchange rate</span>
+                  <span class="mono" id="summaryRate">$1 = ₦1,600</span>
                 </div>
                 <div class="summary-row discount-row" id="discountRow" style="display:none">
-                  <span>Discount</span>
-                  <span id="discountAmount" class="discount-value">-$0.00</span>
+                  <span>Discount <span class="mono" id="summaryPromoLabel"></span></span>
+                  <span id="discountAmount" class="discount-value mono">-$0.00</span>
                 </div>
                 <div class="summary-divider"></div>
                 <div class="summary-row summary-total">
-                  <span>Total</span>
-                  <span id="summaryTotal">$20.00</span>
+                  <span>You pay</span>
+                  <span class="mono" id="summaryTotal">$60.00</span>
+                </div>
+                <div class="summary-row summary-charge">
+                  <span>Charged as</span>
+                  <span class="mono" id="summaryCharge">₦96,000.00</span>
                 </div>
               </div>
 
-              <!-- Promo Code -->
-              <div class="promo-section">
-                <button type="button" class="promo-toggle" id="promoToggle">
-                  <i class="fas fa-tag"></i> Have a promo code?
-                </button>
-                <div class="promo-input-wrap" id="promoInputWrap" style="display:none">
+              <button type="button" class="promo-toggle" id="promoToggle" aria-expanded="false">
+                <i class="fas fa-tag"></i> Have a promo code?
+                <i class="fas fa-chevron-down promo-chevron"></i>
+              </button>
+
+              <div class="promo-input-wrap" id="promoInputWrap" style="display:none">
+                <div class="promo-row">
                   <input
                     type="text"
                     id="promoCode"
-                    class="form-input promo-input"
-                    placeholder="Enter code"
-                    maxlength="20"
+                    placeholder="ENTER CODE"
+                    autocomplete="off"
+                    spellcheck="false"
                   />
-                  <button type="button" class="btn btn-sm btn-apply" id="applyPromo">
-                    Apply
-                  </button>
+                  <button type="button" class="btn btn-sm btn-apply" id="applyPromo">Apply</button>
                 </div>
                 <div class="promo-result" id="promoResult"></div>
               </div>
 
-              <!-- Pay Button -->
               <button type="submit" class="btn btn-pay" id="payBtn">
                 <div class="btn-content" id="payBtnContent">
                   <i class="fas fa-lock"></i>
-                  <span id="payBtnText">Pay $20.00 — Unlock Now</span>
+                  <span id="payBtnText">Pay $60.00 — Secure checkout</span>
                 </div>
                 <div class="btn-loader" id="payBtnLoader" style="display:none">
-                  <div class="btn-spinner"></div>
-                  <span>Processing...</span>
+                  <span class="spinner"></span>
+                  <span>Opening Paystack…</span>
                 </div>
               </button>
 
-              <!-- Security -->
-              <div class="security-row">
-                <div class="security-badge">
-                  <i class="fas fa-lock"></i> SSL Encrypted
-                </div>
-                <div class="security-badge">
-                  <i class="fas fa-shield-check"></i> Secure Payment
-                </div>
-                <div class="security-badge">
-                  <i class="fas fa-credit-card"></i> Paystack
-                </div>
+              <p class="secure-note">
+                <i class="fas fa-shield-halved"></i>
+                You'll be charged in Nigerian Naira by Paystack. Card details never touch this site.
+              </p>
+
+              <div class="accepted-methods">
+                <span class="method"><i class="fas fa-credit-card"></i> Card</span>
+                <span class="method"><i class="fas fa-building-columns"></i> Bank</span>
+                <span class="method"><i class="fas fa-money-bill-transfer"></i> Transfer</span>
+                <span class="method"><i class="fas fa-hashtag"></i> USSD</span>
+                <span class="method"><i class="fas fa-mobile-screen"></i> Mobile money</span>
               </div>
             </form>
           </div>
 
-          <!-- ===== SUCCESS STATE ===== -->
+          <!-- ── SUCCESS STATE ──────────────────────────────── -->
           <div class="payment-body state-panel" id="successState" style="display:none">
-            <div class="state-center">
-              <div class="success-animation">
-                <div class="success-circle">
-                  <i class="fas fa-check"></i>
-                </div>
-                <div class="success-ripple"></div>
-                <div class="success-ripple ripple-2"></div>
+            <div class="success-check">
+              <svg viewBox="0 0 52 52" aria-hidden="true">
+                <circle cx="26" cy="26" r="24" fill="none" />
+                <path fill="none" d="M14 27l8 8 16-17" />
+              </svg>
+            </div>
+            <h3 class="state-title success-title">Payment confirmed</h3>
+            <p class="state-subtitle">
+              Thank you — your payment was processed by Paystack. A receipt is on its
+              way to your inbox, and the work is officially commissioned.
+            </p>
+
+            <div class="receipt">
+              <div class="receipt-row">
+                <span>Reference</span>
+                <span class="detail-value mono" id="successRef">—</span>
               </div>
-
-              <h3 class="state-title success-title">
-                🎉 Access Unlocked!
-              </h3>
-              <p class="state-subtitle">
-                Your payment was successful! Check your email for access instructions.
-              </p>
-
-              <div class="success-details">
-                <div class="detail-row">
-                  <span class="detail-label">
-                    <i class="fas fa-receipt"></i> Reference
-                  </span>
-                  <span class="detail-value mono" id="successRef">—</span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">
-                    <i class="fas fa-layer-group"></i> Tier
-                  </span>
-                  <span class="detail-value" id="successTier">—</span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">
-                    <i class="fas fa-dollar-sign"></i> Amount
-                  </span>
-                  <span class="detail-value" id="successAmount">—</span>
-                </div>
-                <div class="detail-row">
-                  <span class="detail-label">
-                    <i class="fas fa-envelope"></i> Sent To
-                  </span>
-                  <span class="detail-value" id="successEmail">—</span>
-                </div>
+              <div class="receipt-row">
+                <span>Paid for</span>
+                <span class="detail-value" id="successTier">—</span>
               </div>
-
-              <div class="access-instructions">
-                <div class="instruction-icon">
-                  <i class="fas fa-envelope-circle-check"></i>
-                </div>
-                <div>
-                  <strong>What happens next?</strong>
-                  <p>
-                    Check your email inbox (and spam folder) for your unique
-                    access link. You'll receive it within 2 minutes.
-                  </p>
-                </div>
+              <div class="receipt-row">
+                <span>Amount</span>
+                <span class="detail-value mono" id="successAmount">—</span>
               </div>
-
-              <div class="share-section">
-                <p class="share-label">Tell your friends:</p>
-                <div class="share-buttons">
-                  <button class="share-btn twitter" id="shareTwitter">
-                    <i class="fab fa-x-twitter"></i>
-                  </button>
-                  <button class="share-btn whatsapp" id="shareWhatsapp">
-                    <i class="fab fa-whatsapp"></i>
-                  </button>
-                  <button class="share-btn telegram" id="shareTelegram">
-                    <i class="fab fa-telegram"></i>
-                  </button>
-                </div>
+              <div class="receipt-row">
+                <span>Charged</span>
+                <span class="detail-value mono" id="successCharge">—</span>
               </div>
+              <div class="receipt-row">
+                <span>Email</span>
+                <span class="detail-value" id="successEmail">—</span>
+              </div>
+              <div class="receipt-row">
+                <span>GitHub</span>
+                <span class="detail-value mono" id="successGithub">—</span>
+              </div>
+              <div class="receipt-row">
+                <span>Routed to</span>
+                <span class="detail-value mono sub-line">ACCT_4i2l4tyiv5p48cu</span>
+              </div>
+            </div>
 
-              <button class="btn btn-outline" id="buyAgainBtn">
-                <i class="fas fa-arrow-rotate-left"></i>
-                Upgrade Tier
+            <div class="state-actions">
+              <button class="btn btn-primary" id="printReceiptBtn">
+                <i class="fas fa-print"></i> Print receipt
+              </button>
+              <button class="btn btn-outline" id="copyRefBtn">
+                <i class="fas fa-copy"></i> Copy reference
+              </button>
+            </div>
+
+            <button class="btn btn-link" id="buyAgainBtn">
+              <i class="fas fa-rotate-left"></i> Make another payment
+            </button>
+          </div>
+
+          <!-- ── FAILED STATE ───────────────────────────────── -->
+          <div class="payment-body state-panel" id="failedState" style="display:none">
+            <div class="state-icon failed-icon"><i class="fas fa-circle-exclamation"></i></div>
+            <h3 class="state-title failed-title">Payment didn't go through</h3>
+            <p class="state-subtitle" id="failedMessage">
+              Something interrupted the charge. No money left your account — you can retry.
+            </p>
+            <div class="state-actions">
+              <button class="btn btn-pay" id="retryBtn">
+                <i class="fas fa-rotate-right"></i> Try again
+              </button>
+              <button class="btn btn-outline" id="changeTierBtn">
+                <i class="fas fa-sliders"></i> Change scope
               </button>
             </div>
           </div>
-
-          <!-- ===== FAILED STATE ===== -->
-          <div class="payment-body state-panel" id="failedState" style="display:none">
-            <div class="state-center">
-              <div class="failed-animation">
-                <div class="failed-circle">
-                  <i class="fas fa-xmark"></i>
-                </div>
-              </div>
-              <h3 class="state-title failed-title">Payment Failed</h3>
-              <p class="state-subtitle" id="failedMessage">
-                Your payment could not be completed. No charges were made.
-              </p>
-              <div class="failed-actions">
-                <button class="btn btn-pay" id="retryBtn">
-                  <i class="fas fa-rotate-right"></i> Try Again
-                </button>
-                <button class="btn btn-outline" id="changeTierBtn">
-                  <i class="fas fa-layer-group"></i> Change Tier
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Card Footer -->
-          <div class="payment-footer">
-            <span><i class="fas fa-shield-halved"></i> Protected</span>
-            <span><i class="fas fa-lock"></i> Encrypted</span>
-            <span><i class="fas fa-circle-check"></i> Verified</span>
-          </div>
         </div>
 
-        <!-- ===== SIDE INFO ===== -->
-        <div class="checkout-side">
-          <!-- What You're Getting -->
-          <div class="side-card" id="tierPreviewCard">
-            <h4><i class="fas fa-eye"></i> You're Getting</h4>
-            <div id="tierPreviewContent">
-              <ul class="preview-features">
-                <li><i class="fas fa-check"></i> Everything in Standard</li>
-                <li><i class="fas fa-check"></i> Personal voice notes</li>
-                <li><i class="fas fa-check"></i> Full HD video downloads</li>
-                <li><i class="fas fa-check"></i> Direct messaging</li>
-                <li><i class="fas fa-check"></i> Priority requests</li>
-                <li><i class="fas fa-check"></i> Live streams</li>
-              </ul>
-            </div>
-          </div>
-
-          <!-- Recent Purchases -->
+        <!-- Side column -->
+        <aside class="pay-side">
           <div class="side-card">
-            <h4><i class="fas fa-users"></i> Recent Purchases</h4>
-            <div class="recent-buyers" id="recentBuyers">
-              <div class="buyer-item">
-                <img src="https://i.pravatar.cc/32?img=15" alt="" />
-                <div class="buyer-info">
-                  <span class="buyer-name">Alex M.</span>
-                  <span class="buyer-tier">VIP</span>
-                </div>
-                <span class="buyer-time">1 min ago</span>
-              </div>
-              <div class="buyer-item">
-                <img src="https://i.pravatar.cc/32?img=22" alt="" />
-                <div class="buyer-info">
-                  <span class="buyer-name">Jessica L.</span>
-                  <span class="buyer-tier">Premium</span>
-                </div>
-                <span class="buyer-time">4 min ago</span>
-              </div>
-              <div class="buyer-item">
-                <img src="https://i.pravatar.cc/32?img=33" alt="" />
-                <div class="buyer-info">
-                  <span class="buyer-name">Chris B.</span>
-                  <span class="buyer-tier">Standard</span>
-                </div>
-                <span class="buyer-time">12 min ago</span>
-              </div>
-              <div class="buyer-item">
-                <img src="https://i.pravatar.cc/32?img=44" alt="" />
-                <div class="buyer-info">
-                  <span class="buyer-name">Dana W.</span>
-                  <span class="buyer-tier">Premium</span>
-                </div>
-                <span class="buyer-time">23 min ago</span>
+            <div class="side-card-head">
+              <i class="fas fa-file-invoice-dollar"></i>
+              <span>Invoice summary</span>
+            </div>
+            <div id="tierPreviewContent">
+              <div class="preview-name" id="previewName">Feature PR</div>
+              <div class="preview-price mono" id="previewPrice">$60.00</div>
+              <div class="preview-ngn mono" id="previewNgn">≈ ₦96,000</div>
+              <ul class="preview-features" id="previewFeatures"></ul>
+              <div class="preview-meta">
+                <span><i class="fas fa-clock"></i> <span id="previewTurnaround">5 working days</span></span>
               </div>
             </div>
           </div>
 
-          <!-- Trust Signals -->
-          <div class="side-card trust-card">
-            <h4><i class="fas fa-shield-check"></i> You're Safe</h4>
-            <div class="trust-items">
-              <div class="trust-item">
-                <i class="fas fa-lock"></i>
-                <span>256-bit SSL encryption</span>
-              </div>
-              <div class="trust-item">
-                <i class="fas fa-eye-slash"></i>
-                <span>Payment details never stored</span>
-              </div>
-              <div class="trust-item">
-                <i class="fas fa-receipt"></i>
-                <span>Discreet billing description</span>
-              </div>
-              <div class="trust-item">
-                <i class="fas fa-rotate-left"></i>
-                <span>24-hour money-back guarantee</span>
-              </div>
+          <div class="side-card side-card-accent">
+            <div class="side-card-head">
+              <i class="fas fa-shield-halved"></i>
+              <span>How payment flows</span>
             </div>
+            <ol class="flow-list">
+              <li><span>You pay on Paystack checkout</span></li>
+              <li><span>Funds settle to the configured subaccount</span></li>
+              <li><span>You get a receipt + reference instantly</span></li>
+            </ol>
+            <div class="subaccount-box mono">
+              <span class="subaccount-label">SUBACCOUNT</span>
+              <span class="subaccount-code">ACCT_4i2l4tyiv5p48cu</span>
+            </div>
+            <p class="side-note">
+              Split routing and who bears the Paystack fee are configured on this
+              account — see <code>README.md</code>.
+            </p>
           </div>
-        </div>
+
+          <div class="side-card">
+            <div class="side-card-head">
+              <i class="fas fa-circle-question"></i>
+              <span>Need a custom invoice?</span>
+            </div>
+            <p class="side-note">
+              Larger scope, multiple PRs or a monthly retainer? Email the exact
+              amount you've agreed and I'll send a matching payment link.
+            </p>
+            <a class="btn btn-outline btn-block" href="mailto:hello@example.com?subject=Custom%20invoice%20for%20GitHub%20work">
+              <i class="fas fa-envelope"></i> Email me
+            </a>
+          </div>
+        </aside>
       </div>
     </div>
   </section>
 
   <!-- ============================================================
-       FAQ SECTION
+       FAQ
   ============================================================ -->
-  <section class="faq-section" id="faq">
+  <section class="section section-alt" id="faq">
     <div class="container">
-      <div class="section-header">
-        <span class="section-badge">
-          <i class="fas fa-circle-question"></i> FAQ
-        </span>
-        <h2 class="section-title">
-          Frequently Asked<br />
-          <span class="gradient-text">Questions</span>
-        </h2>
+      <div class="section-head">
+        <span class="eyebrow"><i class="fas fa-circle-question"></i> Questions</span>
+        <h2 class="section-title">Before you <span class="gradient-text">hit pay</span></h2>
       </div>
 
-      <div class="faq-grid">
+      <div class="faq-list" id="faqList">
         <div class="faq-item">
-          <button class="faq-question" aria-expanded="false">
-            <span>How do I access content after paying?</span>
-            <i class="fas fa-chevron-down"></i>
+          <button class="faq-q" aria-expanded="false">
+            <span>When do I pay — before or after the PR?</span>
+            <i class="fas fa-plus"></i>
           </button>
-          <div class="faq-answer">
+          <div class="faq-a">
             <p>
-              After your payment is confirmed, you'll receive an email with your
-              unique access link within 2 minutes. Click the link to access your
-              content immediately. If you don't see the email, check your spam folder.
+              For small fixes, payment after merge is fine: pay this invoice as soon as
+              the PR lands. For features and retainers, half up front and half on merge is
+              the default. We'll agree in the issue before any code is written.
             </p>
           </div>
         </div>
 
         <div class="faq-item">
-          <button class="faq-question" aria-expanded="false">
-            <span>Is this a recurring subscription?</span>
-            <i class="fas fa-chevron-down"></i>
+          <button class="faq-q" aria-expanded="false">
+            <span>What currencies can I pay in?</span>
+            <i class="fas fa-plus"></i>
           </button>
-          <div class="faq-answer">
+          <div class="faq-a">
             <p>
-              <strong>No!</strong> This is a one-time payment. You pay once and
-              get access to all content included in your tier. There are no
-              recurring charges, no hidden fees, and no automatic renewals.
+              The page quotes in USD for clarity, but Paystack charges in Nigerian Naira
+              at the rate shown in the summary. Cards, bank transfer, USSD and mobile
+              money are all accepted. International cards are supported and converted
+              by Paystack.
             </p>
           </div>
         </div>
 
         <div class="faq-item">
-          <button class="faq-question" aria-expanded="false">
-            <span>Can I upgrade my tier later?</span>
-            <i class="fas fa-chevron-down"></i>
+          <button class="faq-q" aria-expanded="false">
+            <span>Will I get an invoice for my finance team?</span>
+            <i class="fas fa-plus"></i>
           </button>
-          <div class="faq-answer">
+          <div class="faq-a">
             <p>
-              Yes! You can purchase a higher tier at any time. Each tier gives you
-              additional content. If you upgrade within 24 hours, contact us for
-              a discounted upgrade price.
+              Yes. Enter the billing email in checkout and Paystack emails a receipt
+              immediately. The success screen also gives you a printable receipt with
+              the transaction reference — that's what most finance teams ask for.
             </p>
           </div>
         </div>
 
         <div class="faq-item">
-          <button class="faq-question" aria-expanded="false">
-            <span>Is my payment secure?</span>
-            <i class="fas fa-chevron-down"></i>
+          <button class="faq-q" aria-expanded="false">
+            <span>Who holds my card details?</span>
+            <i class="fas fa-plus"></i>
           </button>
-          <div class="faq-answer">
+          <div class="faq-a">
             <p>
-              Absolutely. All payments are processed through Paystack, a PCI-DSS
-              compliant payment provider trusted by millions. Your card details
-              are never stored on our servers. All transactions use 256-bit SSL
-              encryption.
+              Paystack does — the checkout runs inside Paystack's PCI-DSS compliant
+              iframe. This website only passes your email and the amount; no card data
+              is stored or transmitted by this page.
             </p>
           </div>
         </div>
 
         <div class="faq-item">
-          <button class="faq-question" aria-expanded="false">
-            <span>What payment methods do you accept?</span>
-            <i class="fas fa-chevron-down"></i>
+          <button class="faq-q" aria-expanded="false">
+            <span>What if the work isn't merged?</span>
+            <i class="fas fa-plus"></i>
           </button>
-          <div class="faq-answer">
+          <div class="faq-a">
             <p>
-              We accept all major credit/debit cards (Visa, Mastercard, Verve),
-              bank transfers, USSD, and mobile money through Paystack.
+              If a PR is rejected for reasons within my control, you're refunded in full
+              within 7 days of the request. If the scope changes mid-way, we re-scope in
+              writing before any extra charge.
             </p>
           </div>
         </div>
 
         <div class="faq-item">
-          <button class="faq-question" aria-expanded="false">
-            <span>Can I get a refund?</span>
-            <i class="fas fa-chevron-down"></i>
+          <button class="faq-q" aria-expanded="false">
+            <span>Can you sign an NDA or work under my contract?</span>
+            <i class="fas fa-plus"></i>
           </button>
-          <div class="faq-answer">
+          <div class="faq-a">
             <p>
-              Yes! We offer a 24-hour money-back guarantee. If you're not
-              satisfied with the content, contact us within 24 hours of purchase
-              and we'll process a full refund — no questions asked.
-            </p>
-          </div>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-question" aria-expanded="false">
-            <span>How often is new content posted?</span>
-            <i class="fas fa-chevron-down"></i>
-          </button>
-          <div class="faq-answer">
-            <p>
-              New content is uploaded daily. Premium and VIP members get early
-              access to all new posts. VIP members get lifetime access to all
-              future content at no extra cost.
-            </p>
-          </div>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-question" aria-expanded="false">
-            <span>Will the charge appear on my bank statement?</span>
-            <i class="fas fa-chevron-down"></i>
-          </button>
-          <div class="faq-answer">
-            <p>
-              The charge will appear as a generic "Paystack" transaction on your
-              statement. We ensure discreet billing for your privacy.
+              Usually yes. Send the document before payment and I'll confirm in writing.
+              Net-30 invoicing is available for established clients — ask before paying
+              here so we don't double charge.
             </p>
           </div>
         </div>
@@ -1305,25 +955,18 @@
   </section>
 
   <!-- ============================================================
-       FINAL CTA SECTION
+       FINAL CTA
   ============================================================ -->
   <section class="final-cta">
     <div class="container">
       <div class="cta-card">
-        <div class="cta-content">
-          <h2>Don't Miss Out 🔥</h2>
-          <p>
-            Join <strong>23,400+</strong> subscribers who already have access.
-            New content is dropping tonight — be there.
-          </p>
-          <a href="#subscribe" class="btn btn-primary btn-lg btn-glow">
-            <i class="fas fa-unlock-keyhole"></i>
-            Subscribe Now — From $10
-          </a>
-          <div class="cta-urgency">
-            <i class="fas fa-clock"></i>
-            <span>Prices may increase soon — lock in your rate today</span>
-          </div>
+        <div class="cta-glow" aria-hidden="true"></div>
+        <span class="pill pill-dark"><i class="fas fa-terminal"></i> ready when you are</span>
+        <h2>Got a repo that needs shipping?</h2>
+        <p>Open an issue, tag me, or just pay the scope you need. Most fixes are merged within 48 hours.</p>
+        <div class="cta-actions">
+          <a href="#pay" class="btn btn-primary btn-lg"><i class="fas fa-bolt"></i> Pay an invoice</a>
+          <a href="#rates" class="btn btn-ghost btn-lg"><i class="fas fa-tags"></i> Review rates</a>
         </div>
       </div>
     </div>
@@ -1333,110 +976,54 @@
        FOOTER
   ============================================================ -->
   <footer class="footer">
-    <div class="container">
-      <div class="footer-content">
-        <div class="footer-brand">
-          <div class="footer-logo">
-            <i class="fas fa-fire"></i>
-            <span>FanVault</span>
-          </div>
-          <p>Exclusive premium content platform. Pay once, enjoy forever.</p>
-          <div class="footer-socials">
-            <!-- ✅ FILL IN: Your social links -->
-            <a href="#" aria-label="Twitter"><i class="fab fa-x-twitter"></i></a>
-            <a href="#" aria-label="Instagram"><i class="fab fa-instagram"></i></a>
-            <a href="#" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
-            <a href="#" aria-label="Telegram"><i class="fab fa-telegram"></i></a>
-          </div>
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <div class="brand">
+          <div class="brand-mark"><i class="fas fa-code-branch"></i></div>
+          <span class="brand-name">Dev<span class="brand-accent">Pay</span></span>
         </div>
-
-        <div class="footer-links-col">
-          <h4>Quick Links</h4>
-          <ul>
-            <li><a href="#preview">Content Preview</a></li>
-            <li><a href="#tiers">Pricing Tiers</a></li>
-            <li><a href="#faq">FAQ</a></li>
-            <li><a href="#subscribe">Subscribe</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-links-col">
-          <h4>Legal</h4>
-          <ul>
-            <li><a href="#">Terms of Service</a></li>
-            <li><a href="#">Privacy Policy</a></li>
-            <li><a href="#">Refund Policy</a></li>
-            <li><a href="#">DMCA</a></li>
-          </ul>
-        </div>
-
-        <div class="footer-links-col">
-          <h4>Contact</h4>
-          <ul>
-            <!-- ✅ FILL IN: Your contact info -->
-            <li><a href="mailto:support@fanvault.com">
-              <i class="fas fa-envelope"></i> support@fanvault.com
-            </a></li>
-            <li><a href="#">
-              <i class="fab fa-twitter"></i> @fanvault
-            </a></li>
-          </ul>
+        <p>Payments for GitHub work. Clean PRs, fixed scopes, instant receipts.</p>
+        <div class="footer-socials">
+          <a href="https://github.com" target="_blank" rel="noopener noreferrer" aria-label="GitHub"><i class="fab fa-github"></i></a>
+          <a href="mailto:hello@example.com" aria-label="Email"><i class="fas fa-envelope"></i></a>
+          <a href="#faq" aria-label="FAQ"><i class="fas fa-circle-question"></i></a>
         </div>
       </div>
 
-      <div class="footer-bottom">
-        <p>
-          &copy; <span id="footerYear"></span> FanVault.
-          All rights reserved. All content is owned by the creator.
-        </p>
-        <div class="footer-badges">
-          <span><i class="fas fa-lock"></i> SSL</span>
-          <span><i class="fas fa-shield-check"></i> PCI</span>
-          <span><i class="fas fa-credit-card"></i> Paystack</span>
-        </div>
+      <div class="footer-col">
+        <h4>Page</h4>
+        <a href="#work">Shipped work</a>
+        <a href="#rates">Rates</a>
+        <a href="#services">Services</a>
+        <a href="#pay">Checkout</a>
       </div>
+
+      <div class="footer-col">
+        <h4>Payments</h4>
+        <a href="#faq">Refund policy</a>
+        <a href="#faq">Invoices &amp; receipts</a>
+        <a href="#faq">Split routing</a>
+        <span class="footer-mono mono">ACCT_4i2l4tyiv5p48cu</span>
+      </div>
+
+      <div class="footer-col">
+        <h4>Contact</h4>
+        <a href="mailto:hello@example.com">hello@example.com</a>
+        <a href="https://github.com" target="_blank" rel="noopener noreferrer">@yourhandle</a>
+        <span class="footer-mono mono">UTC+1 · WAT</span>
+      </div>
+    </div>
+
+    <div class="container footer-bottom">
+      <p>&copy; <span id="footerYear"></span> DevPay. All rights reserved.</p>
+      <p class="footer-secure"><i class="fas fa-lock"></i> Payments processed securely by Paystack</p>
     </div>
   </footer>
 
-  <!-- ============================================================
-       TOAST CONTAINER
-  ============================================================ -->
+  <!-- Toasts -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- ============================================================
-       AGE VERIFICATION MODAL
-  ============================================================ -->
-  <div class="age-modal" id="ageModal">
-    <div class="age-modal-card">
-      <div class="age-icon"><i class="fas fa-shield-check"></i></div>
-      <h2>Age Verification</h2>
-      <p>You must be at least <strong>18 years old</strong> to access this website.</p>
-      <div class="age-actions">
-        <button class="btn btn-primary btn-lg" id="ageConfirm">
-          <i class="fas fa-circle-check"></i>
-          I am 18 or older
-        </button>
-        <button class="btn btn-outline btn-lg" id="ageDeny">
-          <i class="fas fa-circle-xmark"></i>
-          I am under 18
-        </button>
-      </div>
-      <p class="age-disclaimer">
-        By entering, you agree to our
-        <a href="#">Terms of Service</a> and
-        <a href="#">Privacy Policy</a>.
-      </p>
-    </div>
-  </div>
-
-  <!-- ============================================================
-       BACK TO TOP
-  ============================================================ -->
-  <button class="back-to-top" id="backToTop" aria-label="Back to top">
-    <i class="fas fa-chevron-up"></i>
-  </button>
-
-  <!-- Main JS -->
+  <!-- Scripts -->
   <script src="js/app.js"></script>
 </body>
 </html>
