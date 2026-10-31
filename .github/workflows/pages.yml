@@ -1,0 +1,49 @@
+# Builds and publishes the static payment page to GitHub Pages.
+# Enable once: Settings → Pages → Source: GitHub Actions
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # Publish only what the browser needs — never server code or env files
+      - name: Assemble site
+        run: |
+          mkdir -p _site
+          cp -r index.html css js config.js _site/
+          test -f _site/config.js || { echo "config.js is required"; exit 1; }
+          if grep -rqE 'sk_(test|live)_' _site/; then
+            echo "::error::A Paystack secret key was found in the published files."
+            exit 1
+          fi
+          if grep -qE "publicKey: *''" _site/config.js; then
+            echo "::error::config.js has no Paystack public key."
+            exit 1
+          fi
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4

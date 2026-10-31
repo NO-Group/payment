@@ -19,6 +19,12 @@
 
 'use strict';
 
+const NODE_MAJOR = Number(process.versions.node.split('.')[0]);
+if (NODE_MAJOR < 18) {
+  console.error(`\n  Node 18 or newer is required (found ${process.versions.node}).\n`);
+  process.exit(1);
+}
+
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
@@ -82,11 +88,8 @@ const CONFIG = {
   minNgn: envNumber('MIN_AMOUNT_NGN', 100),
   maxNgn: envNumber('MAX_AMOUNT_NGN', 5000000),
 
-  /* Branding */
-  brandName: process.env.BRAND_NAME || 'DevPay',
-  recipientHandle: process.env.RECIPIENT_HANDLE || 'lovelychloe',
-  supportEmail: process.env.SUPPORT_EMAIL || 'hello@example.com',
-  githubHandle: process.env.GITHUB_HANDLE || '@yourhandle',
+  /* Contact (used only in server logs / error guidance, never rendered) */
+  supportEmail: process.env.SUPPORT_EMAIL || '',
 
   /* Behaviour */
   verifyAttempts: envNumber('VERIFY_ATTEMPTS', 6),
@@ -120,17 +123,25 @@ function sendJSON(res, statusCode, payload) {
 function readBody(req, limitBytes = 32 * 1024) {
   return new Promise((resolve, reject) => {
     let size = 0;
+    let tooLarge = false;
     const chunks = [];
+
     req.on('data', (chunk) => {
+      if (tooLarge) return;            // keep draining so the response can be sent
       size += chunk.length;
       if (size > limitBytes) {
-        reject(new Error('Request body too large'));
-        req.destroy();
+        tooLarge = true;
+        chunks.length = 0;
+        const err = new Error('Request body too large');
+        err.code = 'TOO_LARGE';
+        reject(err);
         return;
       }
       chunks.push(chunk);
     });
-    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
+    req.on('end', () => {
+      if (!tooLarge) resolve(Buffer.concat(chunks).toString('utf8'));
+    });
     req.on('error', reject);
   });
 }
@@ -163,6 +174,7 @@ function cleanText(value, maxLength = 160) {
 
 /* Very small in-memory rate limiter (per IP + route) */
 const rateBuckets = new Map();
+
 function rateLimit(ip, route, max, windowMs) {
   const key = `${ip}:${route}`;
   const now = Date.now();
@@ -174,6 +186,15 @@ function rateLimit(ip, route, max, windowMs) {
   bucket.count += 1;
   return bucket.count <= max;
 }
+
+/* Drop expired buckets so the map can't grow without bound */
+const rateSweeper = setInterval(() => {
+  const now = Date.now();
+  for (const [key, bucket] of rateBuckets) {
+    if (now > bucket.resetAt) rateBuckets.delete(key);
+  }
+}, 60_000);
+rateSweeper.unref?.();
 
 /* ----------------------------------------------------------------
    3. PAYSTACK CLIENT (secret-key calls only happen here)
@@ -266,7 +287,11 @@ async function handleInitialize(req, res) {
   try {
     body = await readJSON(req);
   } catch (err) {
-    return sendJSON(res, 400, { ok: false, error: err.message });
+    const tooLarge = err.code === 'TOO_LARGE';
+    return sendJSON(res, tooLarge ? 413 : 400, {
+      ok: false,
+      error: tooLarge ? 'Request too large.' : 'Invalid request.',
+    });
   }
 
   const email = cleanText(body.email, 120);
@@ -318,10 +343,7 @@ async function handleInitialize(req, res) {
 
     if (!ok || !json.status || !json.data?.access_code) {
       log('[initialize] Paystack refused:', json.message);
-      return sendJSON(res, 502, {
-        ok: false,
-        error: json.message || 'Paystack could not create this transaction.',
-      });
+      return sendJSON(res, 502, { ok: false, error: 'Payment unavailable. Please try again.' });
     }
 
     log(`[initialize] ${ref} ₦${amount.ngn} → ${CONFIG.subaccount || 'main account'} (${email})`);
@@ -335,7 +357,7 @@ async function handleInitialize(req, res) {
     });
   } catch (err) {
     log('[initialize] error:', err.message);
-    return sendJSON(res, 502, { ok: false, error: err.message });
+    return sendJSON(res, 502, { ok: false, error: 'Payment unavailable. Please try again.' });
   }
 }
 
@@ -357,11 +379,12 @@ async function handleVerify(req, res, rawReference) {
     const { ok, statusCode, json } = await paystackRequest(`/transaction/verify/${encodeURIComponent(ref)}`);
 
     if (!ok || !json.status || !json.data) {
+      log('[verify] Paystack refused:', statusCode, json.message);
       return sendJSON(res, statusCode === 404 ? 404 : 502, {
         ok: false,
         status: 'unknown',
         reference: ref,
-        error: json.message || 'Paystack could not verify this transaction.',
+        error: 'Could not confirm this payment.',
       });
     }
 
@@ -403,11 +426,15 @@ async function handleVerify(req, res, rawReference) {
       buyerEmail: data.customer?.email || null,
       routedTo,
       routedCorrectly,
-      brandName: CONFIG.brandName,
     });
   } catch (err) {
     log('[verify] error:', err.message);
-    return sendJSON(res, 502, { ok: false, status: 'unknown', reference: ref, error: err.message });
+    return sendJSON(res, 502, {
+      ok: false,
+      status: 'unknown',
+      reference: ref,
+      error: 'Could not confirm this payment.',
+    });
   }
 }
 
@@ -415,11 +442,24 @@ async function handleVerify(req, res, rawReference) {
    7. API — WEBHOOK (records payments even if the tab is closed)
 ---------------------------------------------------------------- */
 async function handleWebhook(req, res) {
-  const raw = await readBody(req, 256 * 1024);
   const signature = req.headers['x-paystack-signature'];
 
   if (!CONFIG.secretKey) {
     return sendJSON(res, 500, { ok: false, error: 'Server not configured' });
+  }
+  if (typeof signature !== 'string' || !/^[a-f0-9]{128}$/i.test(signature)) {
+    log('[webhook] rejected: missing or malformed signature');
+    return sendJSON(res, 401, { ok: false, error: 'Invalid signature' });
+  }
+  if (!rateLimit(clientIp(req), 'webhook', 120, 60_000)) {
+    return sendJSON(res, 429, { ok: false, error: 'Too many requests' });
+  }
+
+  let raw;
+  try {
+    raw = await readBody(req, 256 * 1024);
+  } catch {
+    return sendJSON(res, 413, { ok: false, error: 'Request too large' });
   }
 
   const expected = crypto.createHmac('sha512', CONFIG.secretKey).update(raw).digest('hex');
@@ -462,10 +502,6 @@ async function handleWebhook(req, res) {
 function handleConfig(res) {
   return sendJSON(res, 200, {
     ok: true,
-    brandName: CONFIG.brandName,
-    recipientHandle: CONFIG.recipientHandle,
-    supportEmail: CONFIG.supportEmail,
-    githubHandle: CONFIG.githubHandle,
     currency: 'NGN',
     usdToNgnRate: CONFIG.usdToNgnRate,
     minNgn: CONFIG.minNgn,
@@ -496,7 +532,15 @@ const MIME = {
 };
 
 /* Files that must never be served, whatever the path */
-const BLOCKED = new Set(['server.js', 'package.json', 'package-lock.json', '.env', '.env.example', '.gitignore']);
+const BLOCKED = new Set([
+  'server.js',
+  'package.json',
+  'package-lock.json',
+  '.env',
+  '.env.example',
+  '.gitignore',
+  'README.md',
+]);
 
 function serveStatic(req, res, pathname) {
   let rel = decodeURIComponent(pathname.split('?')[0]);
@@ -527,10 +571,12 @@ function serveStatic(req, res, pathname) {
       return res.end();
     }
 
+    const revalidate = ['.html', '.js', '.css', '.json'].includes(ext);
+
     res.writeHead(200, {
       'Content-Type': MIME[ext] || 'application/octet-stream',
       'Content-Length': stats.size,
-      'Cache-Control': ext === '.html' ? 'no-cache' : 'public, max-age=3600',
+      'Cache-Control': revalidate ? 'no-cache' : 'public, max-age=86400',
       ETag: etag,
       'X-Content-Type-Options': 'nosniff',
       'Referrer-Policy': 'strict-origin-when-cross-origin',
@@ -598,8 +644,35 @@ const server = http.createServer(async (req, res) => {
 });
 
 /* ----------------------------------------------------------------
-   11. STARTUP
+   11. STARTUP / SHUTDOWN
 ---------------------------------------------------------------- */
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`\n  Port ${CONFIG.port} is already in use.\n  Set PORT in .env to a free port.\n`);
+  } else if (err.code === 'EACCES') {
+    console.error(`\n  Not allowed to bind port ${CONFIG.port}.\n  Use a port above 1024.\n`);
+  } else {
+    console.error('\n  Server error:', err.message, '\n');
+  }
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  log('[unhandledRejection]', reason instanceof Error ? reason.message : String(reason));
+});
+
+process.on('uncaughtException', (err) => {
+  log('[uncaughtException]', err.stack || err.message);
+});
+
+function shutdown(signal) {
+  log(`${signal} received — closing server`);
+  server.close(() => process.exit(0));
+  setTimeout(() => process.exit(0), 5000).unref();
+}
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
+
 if (require.main === module) {
   server.listen(CONFIG.port, '0.0.0.0', () => {
     const mode = CONFIG.secretKey.startsWith('sk_live')
@@ -609,7 +682,7 @@ if (require.main === module) {
         : 'NOT CONFIGURED';
 
     console.log('');
-    console.log(`  ${CONFIG.brandName} — payments for GitHub work`);
+    console.log('  Payment page');
     console.log(`  ▸ http://localhost:${CONFIG.port}`);
     console.log(`  ▸ Paystack key: ${mode}`);
     console.log(`  ▸ Subaccount:   ${CONFIG.subaccount || '(main account)'}`);
@@ -619,6 +692,9 @@ if (require.main === module) {
     if (!CONFIG.secretKey) {
       console.warn('  ⚠  PAYSTACK_SECRET_KEY is missing — checkout will fail.');
       console.warn('     Copy .env.example to .env and add your keys.\n');
+    }
+    if (CONFIG.secretKey && CONFIG.publicKey && CONFIG.secretKey.slice(-12) === CONFIG.publicKey.slice(-12)) {
+      console.warn('  ⚠  Public and secret keys look like the same key — check your .env.\n');
     }
   });
 }

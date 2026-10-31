@@ -86,10 +86,11 @@ function render() {
   }
   if (btn) btn.disabled = STATE.busy || !STATE.ready || STATE.amount <= 0;
 
-  // conversion note only when it adds information (USD entry)
+  // Conversion note only when it adds information (USD entry); never over an error
   const hint = $('amountError');
   if (hint && !hint.dataset.error) {
     hint.textContent = STATE.currency === 'USD' && STATE.amount > 0 ? `= ${formatNGN(ngn)}` : '';
+    hint.classList.remove('is-error');
   }
 }
 
@@ -267,7 +268,8 @@ function startStaticFlow(form) {
   const publicKey = STATE.config.publicKey;
   if (!publicKey) {
     busy(false);
-    setError('amountError', 'Payment unavailable');
+    STATE.ready = false;
+    render();
     return;
   }
 
@@ -275,7 +277,7 @@ function startStaticFlow(form) {
 
   if (!window.PaystackPop) {
     busy(false);
-    setError('amountError', 'Payment unavailable');
+    setError('amountError', 'Checkout failed');
     return;
   }
 
@@ -344,20 +346,37 @@ function verifying() {
 
 async function verifyServer(reference) {
   verifying();
+
+  let response;
+  let data;
   try {
-    const response = await fetch(`/api/verify/${encodeURIComponent(reference)}`, {
+    response = await fetch(`/api/verify/${encodeURIComponent(reference)}`, {
       headers: { Accept: 'application/json' },
     });
-    const data = await response.json().catch(() => ({}));
-
-    if (data.status === 'success' && data.routedCorrectly !== false) {
-      return succeed(data.reference || reference, data.amountNGN);
-    }
-    if (data.status === 'pending') return retryLater(() => verifyServer(reference));
-    return fail(data.status, data.gatewayResponse);
+    data = await response.json().catch(() => ({}));
   } catch {
+    // network problem — worth retrying
     return retryLater(() => verifyServer(reference));
   }
+
+  // A real answer from Paystack, via our server
+  if (data.status === 'success') {
+    // Money went somewhere other than the configured subaccount: don't claim success
+    if (data.routedCorrectly === false) return fail('routing');
+    return succeed(data.reference || reference, data.amountNGN);
+  }
+
+  if (data.status === 'pending') return retryLater(() => verifyServer(reference));
+  if (data.status === 'failed' || data.status === 'reversed') return fail('failed', data.gatewayResponse);
+  if (data.status === 'abandoned') return fail('abandoned');
+
+  // Paystack has no record of this reference — terminal, don't poll for 30s
+  if (response.status === 404) return fail('unconfirmed');
+
+  // Server or Paystack hiccup (5xx / 429) — worth retrying
+  if (!response.ok) return retryLater(() => verifyServer(reference));
+
+  return fail('unconfirmed');
 }
 
 async function verifyStatic(reference, attempt) {
@@ -404,12 +423,14 @@ function retryLater(fn) {
   STATE.attempts += 1;
   if (STATE.attempts > (STATE.config.verifyAttempts || 6)) return fail('unconfirmed');
   clearTimeout(STATE.timer);
-  STATE.timer = setTimeout(fn, 2500);
+  // 2.5s, then 3.5s, 4.5s… — give slow bank transfers a chance without hammering the API
+  STATE.timer = setTimeout(fn, 2500 + STATE.attempts * 1000);
 }
 
 function succeed(reference, amountNGN) {
   clearTimeout(STATE.timer);
   STATE.busy = false;
+  STATE.attempts = 0;
 
   const paid = amountNGN || toNGN(STATE.snapshot?.amount || 0, STATE.snapshot?.currency || 'NGN');
 
@@ -423,7 +444,15 @@ function succeed(reference, amountNGN) {
 function fail(kind, reason) {
   clearTimeout(STATE.timer);
   STATE.busy = false;
+  STATE.attempts = 0;
   busy(false);
+
+  // Gateway text can be long or technical — only show short, readable messages
+  const readable = typeof reason === 'string'
+    && reason.trim().length > 0
+    && reason.trim().length <= 60
+    && !/https?:|\bcode\b|\{\}|undefined/i.test(reason);
+
 
   const titles = {
     failed: 'Payment failed',
@@ -432,7 +461,7 @@ function fail(kind, reason) {
     routing: 'Payment pending',
   };
   const texts = {
-    failed: reason || '',
+    failed: readable ? reason.trim() : '',
     abandoned: '',
     unconfirmed: '',
     routing: '',
@@ -532,6 +561,7 @@ async function boot() {
   if (!STATE.apiMode) {
     applyConfig(window.PAYMENT_CONFIG || {});
     STATE.ready = Boolean(STATE.config.publicKey);
+    if (!STATE.ready) console.warn('config.js is missing or has no publicKey — checkout disabled.');
   }
 
   initAmount();
@@ -553,8 +583,19 @@ async function boot() {
   $('amountInput')?.focus();
 }
 
+function safeBoot() {
+  try {
+    const result = boot();
+    if (result && typeof result.catch === 'function') {
+      result.catch((err) => console.error('boot failed:', err));
+    }
+  } catch (err) {
+    console.error('boot failed:', err);
+  }
+}
+
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', boot);
+  document.addEventListener('DOMContentLoaded', safeBoot);
 } else {
-  boot();
+  safeBoot();
 }

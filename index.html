@@ -8,15 +8,11 @@
   <meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)" />
   <title>Payment</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="css/style.css" />
 
   <!-- static-host config (used only when no verification server is present) -->
   <script src="config.js"></script>
-  <script src="https://js.paystack.co/v2/inline.js"></script>
+  <script src="https://js.paystack.co/v2/inline.js" defer></script>
 </head>
 
 <body>
@@ -24,7 +20,7 @@
   <header class="bar">
     <div class="bar-inner">
       <span class="bar-title">Payment</span>
-      <span class="bar-lock"><i class="fas fa-lock"></i> Secure</span>
+      <span class="bar-lock"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a3.5 3.5 0 0 0-3.5 3.5V6H4a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 4 14h8a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 12 6h-.5V4.5A3.5 3.5 0 0 0 8 1Zm2 5H6V4.5a2 2 0 1 1 4 0V6Z"/></svg> Secure</span>
     </div>
   </header>
 
@@ -44,6 +40,7 @@
               name="amount"
               class="amount-input"
               inputmode="decimal"
+              enterkeyhint="next"
               placeholder="0.00"
               autocomplete="off"
               aria-label="Amount"
@@ -66,6 +63,8 @@
           name="email"
           class="input"
           inputmode="email"
+          enterkeyhint="go"
+          autocapitalize="off"
           autocomplete="email"
           placeholder="name@company.com"
           aria-label="Email"
@@ -74,13 +73,13 @@
         <p class="hint" id="emailError" role="alert"></p>
       </div>
 
-      <button type="submit" class="pay" id="payBtn" disabled>
+      <button type="submit" class="pay" id="payBtn" aria-live="polite" disabled>
         <span class="pay-label" id="payBtnText">Pay</span>
         <span class="pay-load" id="payBtnLoader" hidden><span class="spin"></span></span>
       </button>
 
       <details class="more" id="moreDetails">
-        <summary>Add details</summary>
+        <summary>Details</summary>
         <div class="more-body">
           <div class="group">
             <label class="label" for="buyerName">Name</label>
@@ -101,18 +100,18 @@
         </div>
       </details>
 
-      <p class="foot"><i class="fas fa-lock"></i> Paystack</p>
+      <p class="foot"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1a3.5 3.5 0 0 0-3.5 3.5V6H4a1.5 1.5 0 0 0-1.5 1.5v5A1.5 1.5 0 0 0 4 14h8a1.5 1.5 0 0 0 1.5-1.5v-5A1.5 1.5 0 0 0 12 6h-.5V4.5A3.5 3.5 0 0 0 8 1Zm2 5H6V4.5a2 2 0 1 1 4 0V6Z"/></svg> Paystack</p>
     </form>
 
     <!-- ── PROCESSING ─────────────────────────────────────────── -->
-    <div class="card panel" id="processingState" hidden>
+    <div class="card panel" id="processingState" role="status" aria-live="polite" hidden>
       <span class="spin spin-lg"></span>
       <p class="panel-title" id="processingText">Confirming payment</p>
     </div>
 
     <!-- ── SUCCESS ────────────────────────────────────────────── -->
-    <div class="card panel" id="successState" hidden>
-      <span class="mark ok"><i class="fas fa-check"></i></span>
+    <div class="card panel" id="successState" role="status" aria-live="polite" hidden>
+      <span class="mark ok"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M13.78 4.22a.75.75 0 0 1 0 1.06l-6.5 6.5a.75.75 0 0 1-1.06 0l-3-3a.75.75 0 1 1 1.06-1.06L6.75 10.19l5.97-5.97a.75.75 0 0 1 1.06 0Z"/></svg></span>
       <p class="panel-title">Payment successful</p>
       <p class="panel-amount mono" id="successAmount"></p>
       <dl class="meta">
@@ -125,8 +124,8 @@
     </div>
 
     <!-- ── FAILED ─────────────────────────────────────────────── -->
-    <div class="card panel" id="failedState" hidden>
-      <span class="mark bad"><i class="fas fa-xmark"></i></span>
+    <div class="card panel" id="failedState" role="alert" aria-live="assertive" hidden>
+      <span class="mark bad"><svg class="icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.75.75 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.75.75 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.75.75 0 0 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"/></svg></span>
       <p class="panel-title" id="failedTitle">Payment failed</p>
       <p class="panel-text" id="failedText"></p>
       <div class="panel-actions">
@@ -135,6 +134,10 @@
     </div>
 
   </main>
+
+  <noscript>
+    <p class="pop">JavaScript is required to pay.</p>
+  </noscript>
 
   <script src="js/app.js"></script>
 </body>
